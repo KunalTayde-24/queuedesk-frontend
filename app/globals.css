@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen font-sans text-ink antialiased;
+    background:
+      radial-gradient(1200px 480px at 10% -10%, #efe9fc 0%, transparent 55%),
+      radial-gradient(900px 400px at 100% 0%, #fdefea 0%, transparent 50%),
+      theme('colors.paper');
+  }
+  h1,
+  h2,
+  h3,
+  .token-number {
+    @apply font-serif;
+  }
+}
