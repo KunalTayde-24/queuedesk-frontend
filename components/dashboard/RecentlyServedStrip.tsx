@@ -11,12 +11,12 @@ export function RecentlyServedStrip({ tokens }: { tokens: Token[] }) {
         RECENTLY SERVED
       </span>
       {tokens.length === 0 ? (
-        <span className="text-[11.5px] text-[#B0A8CC]">Nothing served yet today</span>
+        <span className="text-[11.5px] text-muted/60">Nothing served yet today</span>
       ) : (
         tokens.map((t) => (
           <span
             key={t.id}
-            className="flex-shrink-0 whitespace-nowrap rounded-full border border-[#B7E9D0] bg-teal-light px-3 py-1 text-xs font-bold text-teal-dark"
+            className="flex-shrink-0 whitespace-nowrap rounded-full border border-teal/25 bg-teal-light px-3 py-1 text-xs font-bold text-teal-dark"
           >
             #{t.tokenNumber} {t.name}
           </span>

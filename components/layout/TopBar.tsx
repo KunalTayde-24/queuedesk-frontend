@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 const NAV = [
   {
@@ -61,7 +62,7 @@ export function TopBar() {
     <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-3 px-5 pb-0 pt-5">
       <div
         className={clsx(
-          'flex flex-1 flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white/70 p-2.5 shadow-sm backdrop-blur-md',
+          'flex flex-1 flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-card/70 p-2.5 shadow-sm backdrop-blur-md',
         )}
       >
         <div className="flex items-center gap-1.5">
@@ -91,7 +92,7 @@ export function TopBar() {
           </button>
 
           <div className="ml-1.5 flex items-center gap-2.5">
-            <div className="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-[linear-gradient(155deg,theme(colors.violet.DEFAULT),#8A6AF0)] font-serif text-base font-bold text-white shadow-[0_4px_10px_rgba(108,79,224,0.35)]">
+            <div className="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-[linear-gradient(155deg,#6C4FE0,#8A6AF0)] font-serif text-base font-bold text-white shadow-[0_4px_10px_rgba(108,79,224,0.35)]">
               Q
             </div>
             <div>
@@ -113,7 +114,7 @@ export function TopBar() {
                   FOCUS_RING,
                   active
                     ? 'bg-violet text-white shadow-[0_3px_8px_rgba(108,79,224,0.35)]'
-                    : 'text-muted hover:bg-white hover:text-violet-dark',
+                    : 'text-muted hover:bg-card hover:text-violet-dark',
                 )}
               >
                 <svg
@@ -132,6 +133,8 @@ export function TopBar() {
             );
           })}
         </nav>
+
+        <ThemeToggle />
       </div>
     </div>
   );

@@ -3,12 +3,74 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-ink: 36 31 61;
+    --color-paper: 246 243 251;
+    --color-card: 255 255 255;
+    --color-input: 251 250 254;
+    --color-line: 231 225 244;
+    --color-muted: 122 116 149;
+
+    --color-violet: 108 79 224;
+    --color-violet-dark: 78 54 173;
+    --color-violet-light: 239 234 253;
+    --color-violet-soft: 244 241 252;
+
+    --color-coral: 255 107 74;
+    --color-coral-dark: 214 71 42;
+    --color-coral-light: 255 238 233;
+
+    --color-teal: 18 183 106;
+    --color-teal-dark: 12 138 82;
+    --color-teal-light: 227 249 238;
+
+    --color-amber: 245 166 35;
+    --color-amber-dark: 181 118 14;
+    --color-amber-light: 253 240 217;
+
+    --color-pink: 236 72 153;
+
+    --bg-glow-1: 239 233 252;
+    --bg-glow-2: 253 239 234;
+  }
+
+  .dark {
+    --color-ink: 234 230 247;
+    --color-paper: 18 15 27;
+    --color-card: 28 23 41;
+    --color-input: 34 28 49;
+    --color-line: 53 45 76;
+    --color-muted: 162 154 191;
+
+    --color-violet: 141 112 240;
+    --color-violet-dark: 200 187 240;
+    --color-violet-light: 47 39 74;
+    --color-violet-soft: 38 32 58;
+
+    --color-coral: 255 138 110;
+    --color-coral-dark: 255 158 133;
+    --color-coral-light: 58 34 34;
+
+    --color-teal: 61 209 145;
+    --color-teal-dark: 110 224 172;
+    --color-teal-light: 22 51 41;
+
+    --color-amber: 247 184 84;
+    --color-amber-dark: 250 200 115;
+    --color-amber-light: 58 44 20;
+
+    --color-pink: 240 116 178;
+
+    --bg-glow-1: 46 36 74;
+    --bg-glow-2: 51 33 34;
+  }
+
   body {
-    @apply min-h-screen font-sans text-ink antialiased;
+    @apply min-h-screen font-sans text-ink antialiased transition-colors duration-200;
     background:
-      radial-gradient(1200px 480px at 10% -10%, #efe9fc 0%, transparent 55%),
-      radial-gradient(900px 400px at 100% 0%, #fdefea 0%, transparent 50%),
-      theme('colors.paper');
+      radial-gradient(1200px 480px at 10% -10%, rgb(var(--bg-glow-1)) 0%, transparent 55%),
+      radial-gradient(900px 400px at 100% 0%, rgb(var(--bg-glow-2)) 0%, transparent 50%),
+      rgb(var(--color-paper));
   }
   h1,
   h2,

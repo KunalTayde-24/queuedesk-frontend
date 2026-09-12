@@ -45,7 +45,7 @@ export function SearchFilterBar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search by name or mobile number..."
-          className="w-full rounded-md border-[1.5px] border-line bg-white py-2.5 pl-9 pr-3 text-[13.5px] outline-none transition-colors focus:border-violet focus:ring-4 focus:ring-violet-light"
+          className="w-full rounded-md border-[1.5px] border-line bg-card py-2.5 pl-9 pr-3 text-[13.5px] text-ink outline-none transition-colors focus:border-violet focus:ring-4 focus:ring-violet-light"
         />
       </div>
       <div className="flex gap-1 rounded-md border-[1.5px] border-line bg-card p-[3px]">
@@ -56,7 +56,7 @@ export function SearchFilterBar({
             className={clsx(
               'rounded-[7px] px-3 py-2 text-xs font-bold transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
-              activeTab === tab.value ? 'bg-violet-light text-violet-dark' : 'text-muted hover:bg-[#F7F5FC]',
+              activeTab === tab.value ? 'bg-violet-light text-violet-dark' : 'text-muted hover:bg-violet-soft',
             )}
           >
             {tab.label}

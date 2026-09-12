@@ -44,7 +44,7 @@ export function AddWalkInForm({ onDone }: { onDone: () => void }) {
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
           placeholder="Walk-in customer name"
-          className="min-w-[170px] flex-1 bg-white"
+          className="min-w-[170px] flex-1 bg-card"
         />
         <Input
           id="walkin-mobile"
@@ -54,7 +54,7 @@ export function AddWalkInForm({ onDone }: { onDone: () => void }) {
           error={errors.mobile}
           placeholder="98765 43210"
           inputMode="numeric"
-          className="min-w-[170px] flex-1 bg-white"
+          className="min-w-[170px] flex-1 bg-card"
         />
         <Button type="submit" disabled={submitting} className="h-[42px] w-auto">
           {submitting ? 'Adding…' : 'Add token'}

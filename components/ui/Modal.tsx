@@ -15,11 +15,11 @@ export function Modal({ open, title, icon, children, onClose }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-5 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm animate-fadeIn rounded-card bg-white p-6 shadow-lg"
+        className="w-full max-w-sm animate-fadeIn rounded-card bg-card p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {icon && (

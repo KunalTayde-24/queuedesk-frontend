@@ -41,7 +41,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         className={clsx(
-          'fixed bottom-6 left-1/2 z-[70] flex max-w-[90%] -translate-x-1/2 items-center gap-2.5 rounded-xl bg-ink px-5 py-3.5 text-[13px] text-white shadow-lg transition-all duration-200',
+          'fixed bottom-6 left-1/2 z-[70] flex max-w-[90%] -translate-x-1/2 items-center gap-2.5 rounded-xl bg-[#241F3D] px-5 py-3.5 text-[13px] text-white shadow-lg transition-all duration-200',
           toast.visible
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-6 opacity-0',

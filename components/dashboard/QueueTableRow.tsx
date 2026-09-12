@@ -39,7 +39,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
 
   return (
     <div
-      className={`grid ${GRID_COLS} items-center gap-y-2 border-b border-line px-[18px] py-3.5 text-[13.5px] transition-colors last:border-b-0 hover:bg-[#FBFAFE] sm:gap-y-1.5 ${
+      className={`grid ${GRID_COLS} items-center gap-y-2 border-b border-line px-[18px] py-3.5 text-[13.5px] transition-colors last:border-b-0 hover:bg-violet-soft/60 sm:gap-y-1.5 ${
         token.status === TokenStatus.DONE ? 'opacity-70' : ''
       }`}
     >
@@ -119,7 +119,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
           </>
         )}
         {token.status === TokenStatus.DONE && (
-          <span className="text-[11px] text-[#B0A8CC]">No actions</span>
+          <span className="text-[11px] text-muted/60">No actions</span>
         )}
       </span>
     </div>

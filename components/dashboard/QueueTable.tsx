@@ -31,7 +31,7 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
   return (
     <div className="overflow-hidden rounded-card border border-line bg-card shadow-card">
       <div
-        className={`grid ${GRID_COLS} bg-gradient-to-r from-violet-light to-[#F3EEFD] px-[18px] py-2.5 text-[10.5px] font-bold tracking-wide text-violet-dark`}
+        className={`grid ${GRID_COLS} bg-gradient-to-r from-violet-light to-violet-soft px-[18px] py-2.5 text-[10.5px] font-bold tracking-wide text-violet-dark`}
       >
         <span>#</span>
         <span>Name</span>
@@ -48,11 +48,11 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="1.6"
-            className="text-[#B0A8CC] opacity-50"
+            className="text-muted/50"
           >
             {EmptyQueueIcon}
           </svg>
-          <p className="text-[13px] font-semibold text-[#B0A8CC]">
+          <p className="text-[13px] font-semibold text-muted/70">
             No tokens match. Try a different search or filter.
           </p>
         </div>

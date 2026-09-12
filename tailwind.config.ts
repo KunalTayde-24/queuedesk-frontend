@@ -1,38 +1,44 @@
 import type { Config } from 'tailwindcss';
 
+function withOpacity(varName: string) {
+  return `rgb(var(${varName}) / <alpha-value>)`;
+}
+
 const config: Config = {
+  darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        ink: '#241F3D',
-        paper: '#F6F3FB',
-        card: '#FFFFFF',
-        line: '#E7E1F4',
-        muted: '#7A7495',
+        ink: withOpacity('--color-ink'),
+        paper: withOpacity('--color-paper'),
+        card: withOpacity('--color-card'),
+        input: withOpacity('--color-input'),
+        line: withOpacity('--color-line'),
+        muted: withOpacity('--color-muted'),
         violet: {
-          DEFAULT: '#6C4FE0',
-          dark: '#4E36AD',
-          light: '#EFEAFD',
-          soft: '#F4F1FC',
+          DEFAULT: withOpacity('--color-violet'),
+          dark: withOpacity('--color-violet-dark'),
+          light: withOpacity('--color-violet-light'),
+          soft: withOpacity('--color-violet-soft'),
         },
         coral: {
-          DEFAULT: '#FF6B4A',
-          dark: '#D6472A',
-          light: '#FFEEE9',
+          DEFAULT: withOpacity('--color-coral'),
+          dark: withOpacity('--color-coral-dark'),
+          light: withOpacity('--color-coral-light'),
         },
         teal: {
-          DEFAULT: '#12B76A',
-          dark: '#0C8A52',
-          light: '#E3F9EE',
+          DEFAULT: withOpacity('--color-teal'),
+          dark: withOpacity('--color-teal-dark'),
+          light: withOpacity('--color-teal-light'),
         },
         amber: {
-          DEFAULT: '#F5A623',
-          dark: '#B5760E',
-          light: '#FDF0D9',
+          DEFAULT: withOpacity('--color-amber'),
+          dark: withOpacity('--color-amber-dark'),
+          light: withOpacity('--color-amber-light'),
         },
         pink: {
-          DEFAULT: '#EC4899',
+          DEFAULT: withOpacity('--color-pink'),
         },
       },
       fontFamily: {
@@ -54,9 +60,9 @@ const config: Config = {
         sm: '8px',
       },
       boxShadow: {
-        sm: '0 1px 2px rgba(36,31,61,0.05), 0 1px 1px rgba(36,31,61,0.04)',
-        card: '0 4px 14px rgba(76,54,173,0.08), 0 1px 3px rgba(36,31,61,0.06)',
-        lg: '0 14px 34px rgba(76,54,173,0.16), 0 4px 10px rgba(36,31,61,0.08)',
+        sm: '0 1px 2px rgba(0,0,0,0.16), 0 1px 1px rgba(0,0,0,0.1)',
+        card: '0 4px 14px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.14)',
+        lg: '0 14px 34px rgba(0,0,0,0.32), 0 4px 10px rgba(0,0,0,0.18)',
       },
       keyframes: {
         fadeIn: {

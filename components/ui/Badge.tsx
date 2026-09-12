@@ -5,13 +5,13 @@ import { STATUS_LABEL } from '@/lib/constants';
 const STATUS_CLASSES: Record<TokenStatus, string> = {
   [TokenStatus.WAITING]: 'bg-amber-light text-amber-dark',
   [TokenStatus.CALLED]: 'bg-coral-light text-coral-dark',
-  [TokenStatus.DONE]: 'bg-violet-light text-[#6B5FA8]',
+  [TokenStatus.DONE]: 'bg-violet-light text-violet-dark',
 };
 
 const DOT_CLASSES: Record<TokenStatus, string> = {
   [TokenStatus.WAITING]: 'bg-amber',
   [TokenStatus.CALLED]: 'bg-coral',
-  [TokenStatus.DONE]: 'bg-[#9B8FD6]',
+  [TokenStatus.DONE]: 'bg-violet',
 };
 
 export function Badge({ status }: { status: TokenStatus }) {
