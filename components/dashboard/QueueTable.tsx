@@ -53,7 +53,7 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
             {EmptyQueueIcon}
           </svg>
           <p className="text-[13px] font-semibold text-muted/70">
-            No tokens match. Try a different search or filter.
+            No users in waiting in queue
           </p>
         </div>
       ) : (
