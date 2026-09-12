@@ -46,6 +46,11 @@ export function TopBar() {
   const router = useRouter();
   const [today, setToday] = useState('');
 
+  // The admin area is intentionally not advertised on public-facing pages
+  // (kiosk, display) — it's only reachable by navigating to /admin/login
+  // directly. It still shows here once you're already inside /admin/*.
+  const visibleNav = NAV.filter((item) => item.href !== '/admin/login' || pathname.startsWith('/admin'));
+
   useEffect(() => {
     setToday(
       new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -97,7 +102,7 @@ export function TopBar() {
         </div>
 
         <nav className="flex gap-1 rounded-[11px] bg-violet-soft p-1">
-          {NAV.map((item) => {
+          {visibleNav.map((item) => {
             const active = item.match(pathname);
             return (
               <Link

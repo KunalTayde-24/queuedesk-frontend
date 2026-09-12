@@ -9,8 +9,13 @@ export function useRealtimeTokens(initial: Token[] = []) {
   const [tokens, setTokens] = useState<Token[]>(initial);
 
   useEffect(() => {
+    // A unique channel name per mount avoids a real-world Supabase Realtime
+    // gotcha: React Strict Mode (dev only) mounts -> cleans up -> mounts
+    // again, and re-subscribing under the same fixed channel name can leave
+    // the client in a half-closed state that silently drops events.
+    const channelName = `tokens-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel('tokens-today')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'tokens' },
