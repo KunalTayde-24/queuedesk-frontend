@@ -40,15 +40,3 @@ export function countByStatus(tokens: Token[]) {
     served: tokens.filter((t) => t.status === TokenStatus.DONE).length,
   };
 }
-
-export function upsertToken(tokens: Token[], row: Token): Token[] {
-  const idx = tokens.findIndex((t) => t.id === row.id);
-  if (idx === -1) return [...tokens, row];
-  const next = [...tokens];
-  next[idx] = row;
-  return next;
-}
-
-export function removeToken(tokens: Token[], id: string): Token[] {
-  return tokens.filter((t) => t.id !== id);
-}
