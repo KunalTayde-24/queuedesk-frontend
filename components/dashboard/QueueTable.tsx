@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/components/ui/Toast';
 import { Token } from '@/types/token';
 
-const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_230px]';
+const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_300px]';
 
 export function QueueTable({ tokens }: { tokens: Token[] }) {
   const { show } = useToast();
@@ -31,7 +31,7 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
   return (
     <div className="overflow-hidden rounded-card border border-line bg-card shadow-card">
       <div
-        className={`grid ${GRID_COLS} bg-gradient-to-r from-violet-light to-violet-soft px-[18px] py-2.5 text-[10.5px] font-bold tracking-wide text-violet-dark`}
+        className={`grid ${GRID_COLS} gap-x-2 bg-violet-soft px-[18px] py-2.5 text-[11px] font-extrabold uppercase tracking-[0.06em] text-muted`}
       >
         <span>#</span>
         <span>Name</span>
@@ -53,7 +53,7 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
             {EmptyQueueIcon}
           </svg>
           <p className="text-[13px] font-semibold text-muted/70">
-            No users in waiting in queue
+            The queue is empty. New tokens will appear here as visitors join.
           </p>
         </div>
       ) : (

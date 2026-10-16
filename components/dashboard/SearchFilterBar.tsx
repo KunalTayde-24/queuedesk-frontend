@@ -45,7 +45,7 @@ export function SearchFilterBar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search by name or mobile number..."
-          className="w-full rounded-md border-[1.5px] border-line bg-card py-2.5 pl-9 pr-3 text-[13.5px] text-ink outline-none transition-colors focus:border-violet focus:ring-4 focus:ring-violet-light"
+          className="w-full rounded-md border-[1.5px] border-line bg-card min-h-10 py-2 pl-9 pr-3 text-[13px] text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-amber focus:ring-4 focus:ring-amber/25"
         />
       </div>
       <div className="flex gap-1 rounded-md border-[1.5px] border-line bg-card p-[3px]">

@@ -1,13 +1,34 @@
 import { TopBar } from '@/components/layout/TopBar';
-import { TokenForm } from '@/components/kiosk/TokenForm';
+import { KioskClient } from '@/components/kiosk/KioskClient';
+import { loadPublicEvents } from '@/lib/events-data';
+import { Token } from '@/types/token';
 
-export default function KioskPage() {
+// Always render against the live queue and events, never a build-time snapshot.
+export const dynamic = 'force-dynamic';
+
+async function fetchInitialTokens(): Promise<Token[]> {
+  try {
+    const res = await fetch(`${process.env.API_URL}/tokens/today`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const [initialTokens, { events }] = await Promise.all([fetchInitialTokens(), loadPublicEvents()]);
+  const now = Date.now();
+  // Next three events that have not finished yet, soonest first.
+  const upcoming = events
+    .filter((e) => new Date(e.endsAt).getTime() > now)
+    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+    .slice(0, 3);
+
   return (
-    <main className="min-h-screen">
+    <main className="flex-1">
       <TopBar />
-      <div className="mx-auto max-w-[1080px] px-5 pb-16 pt-4">
-        <TokenForm />
-      </div>
+      <KioskClient initialTokens={initialTokens} upcomingEvents={upcoming} />
     </main>
   );
 }

@@ -45,7 +45,7 @@ export function DeleteConfirmModal({
             <button
               onClick={() => onConfirm(token)}
               disabled={deleting}
-              className="flex-1 rounded-md bg-[#D6472A] py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#B5391F] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D6472A] focus-visible:ring-offset-2"
+              className="flex-1 rounded-md bg-[#B8262B] py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#8A1C20] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8262B] focus-visible:ring-offset-2"
             >
               {deleting ? 'Removing…' : 'Remove'}
             </button>

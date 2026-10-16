@@ -1,27 +1,27 @@
+import clsx from 'clsx';
 import { Token } from '@/types/token';
 
 export function UpNextList({ tokens }: { tokens: Token[] }) {
   return (
-    <div className="relative mt-9 w-full max-w-[290px] border-t border-dashed border-[#6552A8] pt-6">
-      <p className="mb-3 text-center text-[11px] font-bold tracking-[1px] text-[#C9BCF2]">
-        UP NEXT
-      </p>
+    <div className="relative z-10 rounded-[18px] border border-[#F2C66D]/30 bg-black/20 p-3.5 sm:p-4">
+      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#F2C66D]">Up next</p>
       {tokens.length === 0 ? (
-        <p className="text-center text-xs text-[#C9BCF2]">No one waiting</p>
+        <p className="text-[13px] opacity-70">No one is waiting</p>
       ) : (
-        <div className="flex flex-col gap-2.5">
-          {tokens.map((t) => (
-            <div
+        <ul className="grid list-none grid-cols-2 gap-2.5 p-0 sm:grid-cols-4">
+          {tokens.map((t, i) => (
+            <li
               key={t.id}
-              className="flex items-center justify-between gap-3 rounded-[11px] border border-[#6552A8] bg-white/[0.07] px-[18px] py-2.5"
+              className={clsx(
+                'min-w-0 rounded-[12px] px-2 py-2.5 text-center',
+                i === 0 ? 'bg-[#F2C66D]/20 shadow-[inset_0_0_0_1.5px_#F2C66D]' : 'bg-white/[0.07]',
+              )}
             >
-              <span className="token-number text-[18px] font-bold text-pink">
-                {t.tokenNumber}
-              </span>
-              <span className="text-[13px] font-semibold text-[#E9E2FA]">{t.name}</span>
-            </div>
+              <b className="token-number block text-[28px] font-black leading-tight text-[#FFE3A1]">{t.tokenNumber}</b>
+              <span className="block truncate text-[12px] opacity-85">{t.name}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

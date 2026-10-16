@@ -13,7 +13,7 @@ interface QueueTableRowProps {
   onDeleteRequest: (token: Token) => void;
 }
 
-const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_230px]';
+const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_300px]';
 
 export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
   const { show } = useToast();
@@ -39,13 +39,13 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
 
   return (
     <div
-      className={`grid ${GRID_COLS} items-center gap-y-2 border-b border-line px-[18px] py-3.5 text-[13.5px] transition-colors last:border-b-0 hover:bg-violet-soft/60 sm:gap-y-1.5 ${
+      className={`grid ${GRID_COLS} items-center gap-x-2 gap-y-2 border-b border-line px-[18px] py-3 text-[13px] transition-colors last:border-b-0 hover:bg-violet-soft/60 sm:gap-y-1.5 ${
         token.status === TokenStatus.DONE ? 'opacity-70' : ''
-      }`}
+      } ${token.status === TokenStatus.CALLED ? 'bg-amber-light/60' : ''}`}
     >
-      <span className="token-number text-[16px] font-bold text-violet">{token.tokenNumber}</span>
-      <span className="font-bold">{token.name}</span>
-      <span className="hidden text-[12.5px] font-medium text-muted sm:block">
+      <span className="token-number text-[18px] font-black text-violet">{token.tokenNumber}</span>
+      <span className="min-w-0 truncate font-bold">{token.name}</span>
+      <span className="hidden whitespace-nowrap text-[12.5px] font-medium text-muted sm:block">
         +91 {token.mobile}
       </span>
       <span className="justify-self-end sm:justify-self-start">
@@ -119,7 +119,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
           </>
         )}
         {token.status === TokenStatus.DONE && (
-          <span className="text-[11px] text-muted/60">No actions</span>
+          <span className="text-[12px] text-muted/70">No actions</span>
         )}
       </span>
     </div>

@@ -4,15 +4,27 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
+import { useMyToken } from '@/lib/my-token';
 import { ThemeToggle } from './ThemeToggle';
 
 const NAV = [
   {
     href: '/',
-    label: 'Customer kiosk',
+    label: 'Home',
     match: (p: string) => p === '/',
     icon: (
       <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5Z" />
+    ),
+  },
+  {
+    href: '/events',
+    label: 'Events',
+    match: (p: string) => p.startsWith('/events'),
+    icon: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 10h18M8 3v4M16 3v4" />
+      </>
     ),
   },
   {
@@ -40,17 +52,39 @@ const NAV = [
 ];
 
 const FOCUS_RING =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-paper';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-paper';
 
 export function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [today, setToday] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const myToken = useMyToken();
 
-  // The admin area is intentionally not advertised on public-facing pages
-  // (kiosk, display) — it's only reachable by navigating to /admin/login
-  // directly. It still shows here once you're already inside /admin/*.
-  const visibleNav = NAV.filter((item) => item.href !== '/admin/login' || pathname.startsWith('/admin'));
+  // Re-check on every navigation, so the tab appears right after sign-in and
+  // disappears right after log-out.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { authenticated: false }))
+      .then((data: { authenticated?: boolean }) => {
+        if (!cancelled) setSignedIn(Boolean(data.authenticated));
+      })
+      .catch(() => {
+        if (!cancelled) setSignedIn(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  // Visitors never see an admin link on public pages. It shows once you are
+  // signed in (on any page, so you can always get back), or while you are on
+  // an /admin page such as the login form.
+  const onAdminPage = pathname.startsWith('/admin');
+  const visibleNav = NAV.filter((item) => item.href !== '/admin/login' || signedIn || onAdminPage).map((item) =>
+    item.href === '/admin/login' && signedIn ? { ...item, href: '/admin/dashboard' } : item,
+  );
 
   useEffect(() => {
     setToday(
@@ -59,10 +93,10 @@ export function TopBar() {
   }, []);
 
   return (
-    <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-3 px-5 pb-0 pt-5">
+    <header className="sticky top-0 z-30 mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-3 px-4 pb-0 pt-3 sm:px-5">
       <div
         className={clsx(
-          'flex flex-1 flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-card/70 p-2.5 shadow-sm backdrop-blur-md',
+          'flex flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-line bg-card/85 p-2 shadow-card backdrop-blur-md',
         )}
       >
         <div className="flex items-center gap-1.5">
@@ -91,29 +125,37 @@ export function TopBar() {
             </svg>
           </button>
 
-          <div className="ml-1.5 flex items-center gap-2.5">
-            <div className="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-[linear-gradient(155deg,#6C4FE0,#8A6AF0)] font-serif text-base font-bold text-white shadow-[0_4px_10px_rgba(108,79,224,0.35)]">
-              Q
-            </div>
-            <div>
-              <div className="text-[15.5px] font-extrabold tracking-tight">QueueDesk</div>
-              <div className="text-[11.5px] font-semibold text-muted">{today}</div>
-            </div>
-          </div>
+          <Link href="/" className={clsx('ml-1.5 flex items-center gap-2.5 rounded-lg', FOCUS_RING)}>
+            <span
+              aria-hidden="true"
+              className="deva flex h-9 w-9 items-center justify-center rounded-[10px] bg-[linear-gradient(150deg,#D9412E,#B8262B)] text-[19px] leading-[1.6] text-[#F2C66D] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.55),0_5px_12px_-4px_rgba(184,38,43,0.55)]"
+            >
+              ॐ
+            </span>
+            <span className="leading-tight">
+              <span className="block text-[15px] font-extrabold tracking-tight">QueueDesk</span>
+              <span className="block min-h-[15px] text-[11px] font-semibold text-muted">{today}</span>
+            </span>
+          </Link>
         </div>
 
-        <nav className="flex gap-1 rounded-[11px] bg-violet-soft p-1">
+        <nav
+          aria-label="Main"
+          className="order-3 flex w-full gap-1 rounded-xl bg-violet-soft p-1 sm:order-none sm:w-auto"
+        >
           {visibleNav.map((item) => {
             const active = item.match(pathname);
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
                 className={clsx(
-                  'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-bold transition-colors',
+                  'flex min-h-10 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-[12.5px] font-bold leading-5 transition-colors sm:flex-none',
                   FOCUS_RING,
                   active
-                    ? 'bg-violet text-white shadow-[0_3px_8px_rgba(108,79,224,0.35)]'
+                    ? 'bg-violet text-white shadow-[0_4px_10px_-3px_rgba(184,38,43,0.6)]'
                     : 'text-muted hover:bg-card hover:text-violet-dark',
                 )}
               >
@@ -134,8 +176,27 @@ export function TopBar() {
           })}
         </nav>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-1.5">
+          {myToken && (
+            <Link
+              href="/#my-ticket"
+              aria-label={`My token, number ${myToken.tokenNumber}`}
+              className={clsx(
+                "flex h-9 items-center gap-1.5 rounded-lg bg-amber-light px-2.5 text-[12px] font-extrabold text-amber-dark transition-colors hover:bg-amber/30",
+                FOCUS_RING,
+              )}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 8a2 2 0 0 0 0 4v0a2 2 0 0 1 0 4v2h18v-2a2 2 0 0 1 0-4 2 2 0 0 0 0-4V6H3v2Z" />
+                <path d="M13 6v12" strokeDasharray="2 2" />
+              </svg>
+              <span className="hidden min-[430px]:inline">My token</span>
+              <span className="font-serif text-[13px]">#{myToken.tokenNumber}</span>
+            </Link>
+          )}
+          <ThemeToggle />
+        </div>
       </div>
-    </div>
+    </header>
   );
 }

@@ -4,26 +4,50 @@ import { InputHTMLAttributes } from 'react';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  /** Fixed prefix shown inside the field, e.g. "+91". */
+  prefix?: string;
 }
 
-export function Input({ label, error, className, id, ...rest }: InputProps) {
+export function Input({ label, error, prefix, className, id, ...rest }: InputProps) {
+  const errorId = error && id ? `${id}-error` : undefined;
+
+  const input = (
+    <input
+      id={id}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={errorId}
+      className={clsx(
+        'min-h-10 w-full border-[1.5px] border-line bg-input px-3 py-2 text-[13.5px] leading-5 text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-amber focus:bg-card focus:ring-4 focus:ring-amber/25',
+        prefix ? 'rounded-r-md border-l-0' : 'rounded-md',
+        error && 'border-coral-dark',
+        className,
+      )}
+      {...rest}
+    />
+  );
+
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="text-[11.5px] font-bold tracking-wide text-ink/75">
+        <label htmlFor={id} className="text-[12px] font-bold leading-4 text-ink/80">
           {label}
         </label>
       )}
-      <input
-        id={id}
-        className={clsx(
-          'rounded-md border-[1.5px] border-line bg-input px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-violet focus:bg-card focus:ring-4 focus:ring-violet-light',
-          error && 'border-coral-dark',
-          className,
-        )}
-        {...rest}
-      />
-      {error && <span className="text-[11.5px] font-semibold text-coral-dark">{error}</span>}
+      {prefix ? (
+        <div className="flex items-stretch">
+          <span className="flex items-center rounded-l-md border-[1.5px] border-r-0 border-line bg-violet-soft px-3 text-[13px] font-extrabold text-muted">
+            {prefix}
+          </span>
+          {input}
+        </div>
+      ) : (
+        input
+      )}
+      {error && (
+        <span id={errorId} className="text-[12px] font-semibold leading-4 text-coral-dark">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

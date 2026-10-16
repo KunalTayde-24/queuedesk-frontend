@@ -3,7 +3,6 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TopBar } from '@/components/layout/TopBar';
-import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/lib/api-client';
@@ -31,26 +30,39 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="flex-1">
       <TopBar />
-      <div className="flex justify-center px-5 py-12 sm:py-16">
-        <Card accent="pink" className="w-full max-w-[340px]">
-          <div className="mb-3.5 flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-violet-light text-violet">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="4" y="10" width="16" height="10" rx="2" />
-              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-            </svg>
+      <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
+        <section className="grid overflow-hidden rounded-[24px] border border-line bg-card shadow-lg md:grid-cols-2">
+          <div
+            role="img"
+            aria-label="Brihadisvara Temple at dusk"
+            className="temple-photo relative min-h-[190px] md:min-h-[420px]"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(0deg,rgba(18,6,3,0.55),transparent_55%)]"
+            />
           </div>
-          <h2 className="mb-1 text-[19px] text-violet-dark">Admin login</h2>
-          <p className="mb-5 text-[12.5px] text-muted">Sign in to manage today&apos;s queue.</p>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+          <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-3.5 p-6 sm:p-9">
+            <span className="eyebrow">
+              <span className="deva" aria-hidden="true">
+                प्रबंधन
+              </span>
+              Staff only
+            </span>
+            <div>
+              <h1 className="text-[24px] font-bold text-ink">Admin sign in</h1>
+              <p className="mt-1 text-[13px] text-muted">Manage today&apos;s queue and temple events.</p>
+            </div>
             <Input
               id="email"
               type="email"
               label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@queuedesk.com"
+              placeholder="you@temple.org"
+              autoComplete="username"
               required
             />
             <Input
@@ -60,14 +72,19 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
+              autoComplete="current-password"
               required
             />
-            {error && <p className="text-[11.5px] text-coral-dark">{error}</p>}
-            <Button type="submit" disabled={submitting} className="w-full">
+            {error && (
+              <p role="alert" className="text-[12.5px] font-semibold leading-5 text-coral-dark">
+                {error}
+              </p>
+            )}
+            <Button type="submit" disabled={submitting} className="min-h-11 w-full text-[14px]">
               {submitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
-        </Card>
+        </section>
       </div>
     </main>
   );

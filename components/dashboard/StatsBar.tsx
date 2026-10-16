@@ -6,40 +6,22 @@ interface StatsBarProps {
 
 export function StatsBar({ waiting, called, served }: StatsBarProps) {
   const stats = [
-    {
-      label: 'WAITING',
-      value: waiting,
-      bg: 'bg-amber-light',
-      border: 'border-amber/30',
-      color: 'text-amber-dark',
-    },
-    {
-      label: 'CALLED',
-      value: called,
-      bg: 'bg-coral-light',
-      border: 'border-coral/25',
-      color: 'text-coral-dark',
-    },
-    {
-      label: 'SERVED',
-      value: served,
-      bg: 'bg-teal-light',
-      border: 'border-teal/25',
-      color: 'text-teal-dark',
-    },
+    { label: 'Waiting', value: waiting, tone: 'bg-amber-light border-amber/30 text-amber-dark' },
+    { label: 'Called', value: called, tone: 'bg-violet-light border-violet/25 text-violet' },
+    { label: 'Served', value: served, tone: 'bg-teal-light border-teal/25 text-teal-dark' },
   ];
 
   return (
-    <div className="flex gap-2">
+    <dl className="m-0 flex gap-2">
       {stats.map((s) => (
         <div
           key={s.label}
-          className={`min-w-[66px] rounded-xl border px-4 py-2.5 text-center shadow-sm ${s.bg} ${s.border}`}
+          className={`min-w-[64px] rounded-xl border px-3.5 py-2 text-center ${s.tone}`}
         >
-          <p className={`token-number text-[18px] font-bold ${s.color}`}>{s.value}</p>
-          <p className="text-[9px] font-bold tracking-wide text-muted">{s.label}</p>
+          <dd className="token-number m-0 text-[18px] font-black leading-tight">{s.value}</dd>
+          <dt className="text-[10.5px] font-extrabold uppercase tracking-wide text-muted">{s.label}</dt>
         </div>
       ))}
-    </div>
+    </dl>
   );
 }

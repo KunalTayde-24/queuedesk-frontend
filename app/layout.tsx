@@ -1,12 +1,22 @@
 import type { Metadata } from 'next';
-import { Fraunces, Manrope } from 'next/font/google';
+import { Manrope, Noto_Serif, Noto_Serif_Devanagari } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/Toast';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 
-const fraunces = Fraunces({
+// Headings.
+const notoSerif = Noto_Serif({
   subsets: ['latin'],
+  weight: ['600', '700', '900'],
+  variable: '--font-noto-serif',
+  display: 'swap',
+});
+
+// Decorative Devanagari lettering (seal, small Hindi labels).
+const notoDeva = Noto_Serif_Devanagari({
+  subsets: ['devanagari', 'latin'],
   weight: ['600', '700'],
-  variable: '--font-fraunces',
+  variable: '--font-deva',
   display: 'swap',
 });
 
@@ -18,8 +28,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: 'QueueDesk',
-  description: 'Walk-up queue management for shops and clinics',
+  title: 'QueueDesk · Temple Queue',
+  description: 'Temple queue and events: get a token, watch the board, register for festivals',
 };
 
 // Applies the saved/system theme before first paint, so there's no
@@ -36,10 +46,17 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${notoSerif.variable} ${notoDeva.variable} ${manrope.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+          <SiteFooter />
+        </ToastProvider>
       </body>
     </html>
   );

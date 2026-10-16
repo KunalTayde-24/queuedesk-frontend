@@ -41,7 +41,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         className={clsx(
-          'fixed bottom-6 left-1/2 z-[70] flex max-w-[90%] -translate-x-1/2 items-center gap-2.5 rounded-xl bg-[#241F3D] px-5 py-3.5 text-[13px] text-white shadow-lg transition-all duration-200',
+          'fixed bottom-6 left-1/2 z-[70] flex w-max max-w-[90%] -translate-x-1/2 items-center gap-2.5 rounded-xl px-4 py-3 text-[13px] font-semibold leading-5 text-white shadow-lg transition-all duration-200',
+          toast.kind === 'whatsapp' ? 'bg-[#128C4B]' : toast.kind === 'error' ? 'bg-[#B8262B]' : 'bg-[#2B1810]',
           toast.visible
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none translate-y-6 opacity-0',
@@ -56,9 +57,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           </span>
         )}
         {toast.kind === 'error' && (
-          <span className="h-2 w-2 flex-shrink-0 rounded-full bg-coral" />
+          <span className="h-2 w-2 flex-shrink-0 rounded-full bg-[#F2C66D]" />
         )}
-        <span>{toast.text}</span>
+        <span className="min-w-0 break-words">{toast.text}</span>
       </div>
     </ToastContext.Provider>
   );
