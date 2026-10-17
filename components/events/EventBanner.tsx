@@ -15,7 +15,7 @@ function hash(seed: string) {
   return [...seed].reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) >>> 0, 7);
 }
 
-/** Artwork shown when an event has no uploaded image: a gopuram against a glowing sky. */
+/** Artwork shown when an event has no uploaded image: a pagoda against a glowing sky. */
 function EventArt({ seed }: { seed: string }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const h = hash(seed || 'event');
@@ -42,28 +42,31 @@ function EventArt({ seed }: { seed: string }) {
           <circle key={i} cx={24 + i * 52} cy={22 + (i % 2) * 10} r="2.2" />
         ))}
       </g>
-      {/* gopuram silhouette */}
-      <g fill="#1B0A0A" opacity=".72">
-        <rect x="0" y="190" width="400" height="35" />
-        <path d="M120 190h160v-26H120z" />
-        <path d="M132 164h136v-22H132z" />
-        <path d="M146 142h108v-20H146z" />
-        <path d="M160 122h80v-18h-80z" />
-        <path d="M174 104h52V88h-52z" />
-        <path d="M186 88h28V74h-28z" />
-        <ellipse cx="200" cy="68" rx="11" ry="8" />
-        <path d="M200 60v-9" stroke="#1B0A0A" strokeWidth="2.5" />
-        <path d="M60 190v-30h40v30zM300 190v-30h40v30z" />
-        <ellipse cx="80" cy="156" rx="12" ry="9" />
-        <ellipse cx="320" cy="156" rx="12" ry="9" />
+      {/* pagoda silhouette */}
+      <g fill="#1B0A0A" opacity=".74">
+        <rect x="0" y="192" width="400" height="33" />
+        <rect x="150" y="150" width="100" height="42" />
+        <rect x="162" y="104" width="76" height="34" />
+        <rect x="174" y="66" width="52" height="30" />
+        {/* upturned roofs */}
+        <path d="M112 152q38-2 56-16h64q18 14 56 16l-8 10H120z" />
+        <path d="M128 110q30-2 46-14h52q16 12 46 14l-7 9H135z" />
+        <path d="M146 72q24-2 36-12h36q12 10 36 12l-6 8H152z" />
+        <path d="M192 58q8-12 8-26q0 14 8 26z" />
+        <rect x="199" y="26" width="2" height="12" />
+        <path d="M96 196q52-4 74-18h60q22 14 74 18l-10 8H106z" />
       </g>
-      {/* lit doorway and windows */}
-      <g fill="#FFD27A" opacity=".9">
-        <path d="M188 190v-20a12 12 0 0 1 24 0v20z" />
-        <rect x="150" y="170" width="8" height="10" rx="1" />
-        <rect x="242" y="170" width="8" height="10" rx="1" />
-        <rect x="164" y="148" width="7" height="9" rx="1" />
-        <rect x="229" y="148" width="7" height="9" rx="1" />
+      {/* lit doorway, windows and hanging lanterns */}
+      <g fill="#FFD27A" opacity=".92">
+        <path d="M188 192v-24a12 12 0 0 1 24 0v24z" />
+        <rect x="166" y="116" width="8" height="12" rx="1" />
+        <rect x="226" y="116" width="8" height="12" rx="1" />
+        <rect x="190" y="76" width="20" height="12" rx="1" />
+      </g>
+      <g fill="#E53B2C">
+        {[128, 160, 240, 272].map((x) => (
+          <ellipse key={x} cx={x} cy="168" rx="6" ry="8" />
+        ))}
       </g>
     </svg>
   );

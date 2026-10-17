@@ -5,14 +5,15 @@ import { Token } from '@/types/token';
 
 const POLL_INTERVAL_MS = 3000;
 
-export function useRealtimeTokens(initial: Token[] = []) {
+/** Polls `url` every few seconds. Pass a different URL (e.g. another date) to switch queues. */
+export function useRealtimeTokens(initial: Token[] = [], url = '/api/tokens/today') {
   const [tokens, setTokens] = useState<Token[]>(initial);
 
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
       try {
-        const res = await fetch('/api/tokens/today', { cache: 'no-store' });
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok || cancelled) return;
         const data = (await res.json()) as Token[];
         if (!cancelled) setTokens(data);
@@ -21,14 +22,14 @@ export function useRealtimeTokens(initial: Token[] = []) {
         // view up.
       }
     };
+    void poll();
     const intervalId = setInterval(poll, POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       clearInterval(intervalId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [url]);
 
   return tokens;
 }

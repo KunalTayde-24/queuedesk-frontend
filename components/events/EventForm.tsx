@@ -176,7 +176,7 @@ export function EventForm({ event }: { event?: EventSummary }) {
         <Input id="event-title" label="Title *" value={values.title} onChange={(item) => update('title', item.target.value)} error={visible.title} maxLength={120} required />
         <TextArea id="event-description" label="Description *" value={values.description} onChange={(item) => update('description', item.target.value)} error={visible.description} maxLength={4000} required />
         <div className="grid gap-1.5">
-          <Input id="event-venue" label="Venue *" value={values.venue} onChange={(item) => update('venue', item.target.value)} error={visible.venue} maxLength={200} placeholder="e.g. Main Hall, Shri Ram Mandir, Station Road, Pune" required />
+          <Input id="event-venue" label="Venue *" value={values.venue} onChange={(item) => update('venue', item.target.value)} error={visible.venue} maxLength={200} placeholder="e.g. Main Hall, Lotus Temple, 12 Temple Road, City" required />
           <p className="text-[12px] leading-5 text-muted">Include the full address. Visitors see it on a map on the event page.</p>
         </div>
 

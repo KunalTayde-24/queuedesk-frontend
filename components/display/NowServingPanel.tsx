@@ -4,8 +4,8 @@ export function NowServingPanel({ current }: { current: Token | undefined }) {
   return (
     <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-1 py-6 text-center" aria-live="assertive">
       <p className="flex items-center gap-3 text-[12px] font-extrabold uppercase tracking-[0.2em] text-[#F2C66D]">
-        <span className="deva text-[22px] normal-case tracking-[0.15em]" aria-hidden="true">
-          अभी सेवा में
+        <span className="cn text-[22px] normal-case tracking-[0.15em]" aria-hidden="true">
+          现在服务
         </span>
         Now serving
       </p>

@@ -1,7 +1,9 @@
 'use client';
 
+import { TempleLogo } from '@/components/brand/TempleLogo';
 import { useEffect, useRef, useState } from 'react';
 import { TopBar } from '@/components/layout/TopBar';
+import { Lantern, LanternDefs } from '@/components/temple/Lantern';
 import { useRealtimeTokens } from '@/hooks/useRealtimeTokens';
 import { countByStatus, sortByTokenNumberAsc } from '@/lib/queue-utils';
 import { Token, TokenStatus } from '@/types/token';
@@ -10,6 +12,18 @@ import { UpNextList } from './UpNextList';
 
 const UP_NEXT_COUNT = 4;
 const AVG_MIN = 5;
+
+function HangingLantern({ side }: { side: 'l' | 'r' }) {
+  return (
+    <svg
+      viewBox="-30 0 60 110"
+      aria-hidden="true"
+      className={`pointer-events-none absolute top-0 hidden w-[56px] overflow-visible md:block ${side === 'l' ? 'left-[30%]' : 'right-[30%]'}`}
+    >
+      <Lantern x={0} y={0} scale={1.2} delay={side === 'l' ? 0 : -1.5} />
+    </svg>
+  );
+}
 
 function Clock() {
   const [now, setNow] = useState('');
@@ -43,11 +57,14 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
     <main className="flex-1">
       <TopBar />
       <div className="mx-auto max-w-[1080px] px-4 pb-10 pt-3 sm:px-5">
+        <LanternDefs />
         <section
           ref={boardRef}
           aria-label="Now serving board"
           className="temple-photo relative flex min-h-[calc(100vh-120px)] flex-col overflow-hidden rounded-[24px] p-4 text-[#FFF3DA] shadow-[inset_0_0_0_3px_rgba(242,198,109,0.55),inset_0_0_0_10px_#5E0F14,inset_0_0_0_11px_rgba(242,198,109,0.35),0_20px_40px_-18px_rgba(90,30,10,0.55)] sm:p-6 [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none"
         >
+          <HangingLantern side="l" />
+          <HangingLantern side="r" />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(242,198,109,0.16),transparent_48%),linear-gradient(170deg,rgba(125,20,26,0.9),rgba(70,12,16,0.93)_60%,rgba(40,8,10,0.96))]"
@@ -55,12 +72,7 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
 
           <div className="relative z-10 flex items-center justify-between gap-3 px-1.5 pt-1.5">
             <div className="flex items-center gap-2.5 text-[16px] font-extrabold">
-              <span
-                aria-hidden="true"
-                className="deva flex h-9 w-9 items-center justify-center rounded-[10px] bg-[linear-gradient(150deg,#D9412E,#B8262B)] text-[19px] leading-[1.6] text-[#F2C66D] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.55)]"
-              >
-                ॐ
-              </span>
+              <TempleLogo className="h-10 !text-[#FFE3A1]" />
               QueueDesk
             </div>
             <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
-import { CreateTokenRequest, LoginRequest, Token } from '@/types/token';
+import { CreateTokenRequest, LoginRequest, Token, WalkInRequest } from '@/types/token';
+import { AdminQueueDays, OpenDates, SendOtpResponse, VerifyOtpResponse } from '@/types/queue';
 import { EventRegistrationResult, EventSummary, Registrant, RegistrationRequest } from '@/types/event';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -37,6 +38,23 @@ export const apiClient = {
   createToken: (data: CreateTokenRequest) =>
     request<Token>('/api/tokens', { method: 'POST', body: JSON.stringify(data) }),
   fetchToday: () => request<Token[]>('/api/tokens/today', { method: 'GET' }),
+  fetchOpenDates: () => request<OpenDates>('/api/tokens/dates', { method: 'GET' }),
+  sendOtp: (mobile: string) =>
+    request<SendOtpResponse>('/api/otp/send', { method: 'POST', body: JSON.stringify({ mobile }) }),
+  verifyOtp: (mobile: string, code: string) =>
+    request<VerifyOtpResponse>('/api/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify({ mobile, code }),
+    }),
+  fetchAdminQueue: (date: string) =>
+    request<Token[]>(`/api/admin/queue?date=${encodeURIComponent(date)}`, { method: 'GET' }),
+  listQueueDays: () => request<AdminQueueDays>('/api/admin/queue/days', { method: 'GET' }),
+  openQueueDay: (date: string) =>
+    request<{ date: string; open: true }>(`/api/admin/queue/days/${date}`, { method: 'PUT' }),
+  closeQueueDay: (date: string) =>
+    request<{ date: string; open: false }>(`/api/admin/queue/days/${date}`, { method: 'DELETE' }),
+  createWalkIn: (data: WalkInRequest) =>
+    request<Token>('/api/admin/queue/tokens', { method: 'POST', body: JSON.stringify(data) }),
   login: (data: LoginRequest) =>
     request<{ ok: true }>('/api/auth/login', {
       method: 'POST',

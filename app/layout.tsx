@@ -1,23 +1,24 @@
 import type { Metadata } from 'next';
-import { Manrope, Noto_Serif, Noto_Serif_Devanagari } from 'next/font/google';
+import { Ma_Shan_Zheng, Manrope, Noto_Serif_SC } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/Toast';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 
-// Headings.
-const notoSerif = Noto_Serif({
-  subsets: ['latin'],
+// Headings: Noto Serif SC covers Latin + Chinese. The CJK glyph files are large,
+// so they are fetched on demand (unicode-range) instead of preloaded.
+const notoSerif = Noto_Serif_SC({
   weight: ['600', '700', '900'],
   variable: '--font-noto-serif',
   display: 'swap',
+  preload: false,
 });
 
-// Decorative Devanagari lettering (seal, small Hindi labels).
-const notoDeva = Noto_Serif_Devanagari({
-  subsets: ['devanagari', 'latin'],
-  weight: ['600', '700'],
-  variable: '--font-deva',
+// Calligraphic lettering for the seal, banners and small Chinese labels.
+const maShan = Ma_Shan_Zheng({
+  weight: '400',
+  variable: '--font-ma-shan',
   display: 'swap',
+  preload: false,
 });
 
 const manrope = Manrope({
@@ -48,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${notoSerif.variable} ${notoDeva.variable} ${manrope.variable}`}
+      className={`${notoSerif.variable} ${maShan.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
       <body>

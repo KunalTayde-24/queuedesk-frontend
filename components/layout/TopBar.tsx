@@ -1,5 +1,6 @@
 'use client';
 
+import { TempleLogo } from '@/components/brand/TempleLogo';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
@@ -99,12 +100,12 @@ export function TopBar() {
           'flex flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-line bg-card/85 p-2 shadow-card backdrop-blur-md',
         )}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           <button
             aria-label="Go back"
             onClick={() => router.back()}
             className={clsx(
-              'flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-violet-soft hover:text-violet-dark',
+              'hidden h-8 w-8 items-center justify-center rounded-lg text-muted sm:flex transition-colors hover:bg-violet-soft hover:text-violet-dark',
               FOCUS_RING,
             )}
           >
@@ -116,7 +117,7 @@ export function TopBar() {
             aria-label="Go forward"
             onClick={() => router.forward()}
             className={clsx(
-              'flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-violet-soft hover:text-violet-dark',
+              'hidden h-8 w-8 items-center justify-center rounded-lg text-muted sm:flex transition-colors hover:bg-violet-soft hover:text-violet-dark',
               FOCUS_RING,
             )}
           >
@@ -125,13 +126,8 @@ export function TopBar() {
             </svg>
           </button>
 
-          <Link href="/" className={clsx('ml-1.5 flex items-center gap-2.5 rounded-lg', FOCUS_RING)}>
-            <span
-              aria-hidden="true"
-              className="deva flex h-9 w-9 items-center justify-center rounded-[10px] bg-[linear-gradient(150deg,#D9412E,#B8262B)] text-[19px] leading-[1.6] text-[#F2C66D] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.55),0_5px_12px_-4px_rgba(184,38,43,0.55)]"
-            >
-              ॐ
-            </span>
+          <Link href="/" className={clsx('flex min-w-0 items-center gap-2.5 rounded-lg sm:ml-1.5', FOCUS_RING)}>
+            <TempleLogo className="h-11" />
             <span className="leading-tight">
               <span className="block text-[15px] font-extrabold tracking-tight">QueueDesk</span>
               <span className="block min-h-[15px] text-[11px] font-semibold text-muted">{today}</span>

@@ -1,5 +1,6 @@
 'use client';
 
+import { TempleLogo } from '@/components/brand/TempleLogo';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TopBar } from '@/components/layout/TopBar';
@@ -36,8 +37,8 @@ export default function AdminLoginPage() {
         <section className="grid overflow-hidden rounded-[24px] border border-line bg-card shadow-lg md:grid-cols-2">
           <div
             role="img"
-            aria-label="Brihadisvara Temple at dusk"
-            className="temple-photo relative min-h-[190px] md:min-h-[420px]"
+            aria-label="Temple with red lanterns"
+            className="temple-photo relative min-h-[190px] [background-position:65%_30%] md:min-h-[420px]"
           >
             <div
               aria-hidden="true"
@@ -45,9 +46,10 @@ export default function AdminLoginPage() {
             />
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-3.5 p-6 sm:p-9">
+            <TempleLogo className="mb-1 h-16 self-start" />
             <span className="eyebrow">
-              <span className="deva" aria-hidden="true">
-                प्रबंधन
+              <span className="cn" aria-hidden="true">
+                管理
               </span>
               Staff only
             </span>

@@ -1,5 +1,6 @@
 'use client';
 
+import { TempleLogo } from '@/components/brand/TempleLogo';
 import Link from 'next/link';
 import { useRealtimeTokens } from '@/hooks/useRealtimeTokens';
 import { countByStatus, sortByTokenNumberAsc } from '@/lib/queue-utils';
@@ -8,6 +9,7 @@ import { EventCard } from '@/components/events/EventCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { eventImageSrc } from '@/lib/events';
 import { EventSummary } from '@/types/event';
+import { OpenDates } from '@/types/queue';
 import { TokenForm } from './TokenForm';
 
 // Rough per-person service time, used only for the "estimated wait" hint.
@@ -15,17 +17,17 @@ const AVG_MIN = 5;
 
 const STEPS = [
   {
-    deva: '1',
+    cn: '一',
     title: 'Get a token',
     text: 'Enter your name and mobile number. Your number appears right away and shows how many people are ahead of you.',
   },
   {
-    deva: '2',
+    cn: '二',
     title: 'Look around while you wait',
     text: 'Visit the shrine, light incense or relax in the garden. The live board and your ticket update on their own.',
   },
   {
-    deva: '3',
+    cn: '三',
     title: "Come when you're called",
     text: "When it's your turn we send you a WhatsApp message and your number lights up on the board.",
   },
@@ -65,9 +67,11 @@ function Stat({
 export function KioskClient({
   initialTokens,
   upcomingEvents,
+  openDates,
 }: {
   initialTokens: Token[];
   upcomingEvents: EventSummary[];
+  openDates: OpenDates;
 }) {
   const tokens = useRealtimeTokens(initialTokens);
   const { waiting } = countByStatus(tokens);
@@ -76,18 +80,19 @@ export function KioskClient({
   return (
     <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
       <section
-        className="temple-photo relative grid overflow-hidden rounded-[24px] border border-line shadow-lg [background-position:28%_0] [background-size:auto_380px] lg:min-h-[520px] lg:grid-cols-2 lg:[background-position:28%_40%] lg:[background-size:cover]"
+        className="temple-photo relative grid overflow-hidden rounded-[24px] border border-line shadow-lg [background-position:68%_0] [background-size:auto_380px] lg:min-h-[520px] lg:grid-cols-2 lg:[background-position:70%_40%] lg:[background-size:cover]"
         aria-label="Welcome"
       >
         {/* Darkening layer: heavy behind the text, clear over the temple. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,6,3,0)_0px,rgba(18,6,3,0)_170px,rgba(18,6,3,1)_380px)] lg:bg-[linear-gradient(270deg,rgba(18,6,3,0.92)_0%,rgba(18,6,3,0.78)_40%,rgba(18,6,3,0.05)_75%)]"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,6,3,0)_0px,rgba(18,6,3,0)_170px,rgba(18,6,3,1)_380px)] lg:bg-[linear-gradient(90deg,rgba(18,6,3,0.9)_0%,rgba(18,6,3,0.72)_42%,rgba(18,6,3,0.05)_78%)]"
         />
-        <div className="relative z-10 flex min-w-0 flex-col justify-center gap-4 px-5 pb-6 pt-[250px] text-[#FFF3DA] sm:px-8 sm:pb-8 sm:pt-[250px] lg:col-start-2 lg:px-9 lg:py-10">
+        <div className="relative z-10 flex min-w-0 flex-col justify-center gap-4 px-5 pb-6 pt-[250px] text-[#FFF3DA] sm:px-8 sm:pb-8 sm:pt-[250px] lg:px-9 lg:py-10">
+          <TempleLogo className="h-14 self-start !text-[#FFE3A1] sm:h-16" />
           <span className="eyebrow !text-[#FFC86B]">
-            <span className="deva !text-[#F2C66D]" aria-hidden="true">
-              स्वागतम्
+            <span className="cn !text-[#F2C66D]" aria-hidden="true">
+              欢迎光临
             </span>
             Welcome to the temple
           </span>
@@ -100,7 +105,7 @@ export function KioskClient({
             Get a token in seconds and look around the temple grounds while you wait. We&apos;ll send you a WhatsApp
             message the moment it&apos;s your turn.
           </p>
-          <TokenForm tokens={tokens} waitingCount={waiting} />
+          <TokenForm tokens={tokens} waitingCount={waiting} openDates={openDates} />
         </div>
       </section>
 
@@ -140,9 +145,9 @@ export function KioskClient({
             <li key={s.title} className="relative rounded-card border border-line bg-card px-5 pb-5 pt-7 shadow-card">
               <span
                 aria-hidden="true"
-                className="deva absolute -top-4 left-5 flex h-9 w-9 items-center justify-center rounded-full bg-violet text-[20px] leading-none text-[#F2C66D] ring-4 ring-[rgb(var(--color-paper))]"
+                className="cn absolute -top-4 left-5 flex h-9 w-9 items-center justify-center rounded-full bg-violet text-[20px] leading-none text-[#F2C66D] ring-4 ring-[rgb(var(--color-paper))]"
               >
-                {s.deva}
+                {s.cn}
               </span>
               <h3 className="mb-1.5 text-[16px] font-bold">{s.title}</h3>
               <p className="text-[13px] leading-6 text-muted">{s.text}</p>

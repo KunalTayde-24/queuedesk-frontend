@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/Input';
 import { apiClient } from '@/lib/api-client';
 import { validateTokenForm } from '@/lib/validators';
 import { useToast } from '@/components/ui/Toast';
+import { formatDateKey } from '@/lib/dates';
 
-export function AddWalkInForm({ onDone }: { onDone: () => void }) {
+export function AddWalkInForm({ date, onDone }: { date: string; onDone: () => void }) {
   const { show } = useToast();
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
@@ -22,8 +23,8 @@ export function AddWalkInForm({ onDone }: { onDone: () => void }) {
 
     setSubmitting(true);
     try {
-      const token = await apiClient.createToken({ name: name.trim(), mobile });
-      show(`Token #${token.tokenNumber} created for ${token.name}`);
+      const token = await apiClient.createWalkIn({ name: name.trim(), mobile, date });
+      show(`Token #${token.tokenNumber} created for ${token.name} (${formatDateKey(date)})`);
       setName('');
       setMobile('');
       onDone();

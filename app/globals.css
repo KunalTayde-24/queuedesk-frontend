@@ -92,11 +92,10 @@
     @apply font-serif;
     line-height: 1.2;
   }
-  /* Decorative Devanagari lettering (seal, small Hindi labels). */
-  .deva {
-    font-family: var(--font-deva), var(--font-noto-serif), serif;
-    font-weight: 700;
-    letter-spacing: 0;
+  /* Decorative Chinese lettering (seal, banners, small labels). */
+  .cn {
+    font-family: var(--font-ma-shan), var(--font-noto-serif), serif;
+    letter-spacing: 0.04em;
   }
   :focus-visible {
     outline: 2px solid rgb(var(--color-amber));
@@ -126,16 +125,43 @@
   .eyebrow {
     @apply inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-violet;
   }
-  .eyebrow .deva {
-    @apply text-[15px] normal-case tracking-normal text-amber-dark;
+  .eyebrow .cn {
+    @apply text-[17px] normal-case tracking-[0.1em] text-amber-dark;
   }
-  /* Real temple photo as a section background. Darkened so text on it stays readable. */
+  /* Real temple photo as a section background (daytime, swapped for the night shot in dark mode). */
   .temple-photo {
-    background-image: url('/images/temple.jpg');
+    background-image: url('/images/temple-day.webp');
     background-size: cover;
-    background-position: 28% 40%;
+    background-position: 70% 40%;
     background-repeat: no-repeat;
-    background-color: #120603;
+    background-color: #1a0d08;
+  }
+  .dark .temple-photo {
+    background-image: url('/images/temple-night.webp');
+  }
+}
+
+/* ---- Lantern animation (display board) ---- */
+@keyframes temple-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+.t-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: temple-sway 3.6s ease-in-out infinite;
+}
+.dark .t-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 120, 60, 0.8));
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-sway {
+    animation: none !important;
   }
 }
 

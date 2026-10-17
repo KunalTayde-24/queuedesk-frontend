@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo, useSyncExternalStore } from 'react';
+import { todayKey } from '@/lib/dates';
 import { Token } from '@/types/token';
 
 /**
  * The visitor's own token, remembered in this browser so a refresh, a closed tab
- * or switching apps never loses their number. Tokens are per-day, so a saved one
- * from an earlier day is ignored.
+ * or switching apps never loses their number. A token belongs to the queue date
+ * it was booked for; once that date has passed the saved copy is ignored.
  */
 const KEY = 'qd-my-token';
 const CHANGE_EVENT = 'qd-my-token-change';
@@ -17,6 +18,8 @@ export interface MyToken {
   tokenNumber: number;
   name: string;
   mobile: string;
+  /** The queue date this token is for, "YYYY-MM-DD". */
+  date: string;
   createdAt: string;
 }
 
@@ -29,8 +32,10 @@ function parse(raw: string | null): MyToken | null {
   try {
     const t = JSON.parse(raw) as MyToken;
     if (!t || typeof t.id !== 'string' || typeof t.tokenNumber !== 'number') return null;
-    if (istDay(Date.parse(t.createdAt)) !== istDay(Date.now())) return null;
-    return t;
+    // Tokens saved before dates existed were always for the day they were taken.
+    const date = typeof t.date === 'string' ? t.date.slice(0, 10) : istDay(Date.parse(t.createdAt));
+    if (date < todayKey()) return null;
+    return { ...t, date };
   } catch {
     return null;
   }
@@ -46,6 +51,7 @@ export function saveMyToken(token: Token) {
     tokenNumber: token.tokenNumber,
     name: token.name,
     mobile: token.mobile,
+    date: token.date.slice(0, 10),
     createdAt: token.createdAt,
   };
   try {

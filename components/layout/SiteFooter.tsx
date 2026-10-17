@@ -1,3 +1,4 @@
+import { TempleLogo } from '@/components/brand/TempleLogo';
 import Link from 'next/link';
 
 const LINK =
@@ -28,13 +29,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1080px] gap-8 px-4 pb-6 pt-12 sm:px-5 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="min-w-0">
           <Link href="/" className="inline-flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber">
-            <span
-              aria-hidden="true"
-              className="deva flex h-9 w-9 items-center justify-center rounded-[10px] bg-[linear-gradient(150deg,#D9412E,#B8262B)] text-[19px] leading-[1.6] text-[#F2C66D] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.55)]"
-            >
-              ॐ
-            </span>
-            <span className="text-[15px] font-extrabold tracking-tight">QueueDesk</span>
+            <TempleLogo className="h-[72px]" />
           </Link>
           <p className="mt-3 max-w-[34ch] text-[13px] leading-6 text-muted">
             Skip the line, keep the calm. Get a token from your phone, watch the live board and register for temple
@@ -85,8 +80,8 @@ export function SiteFooter() {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-4 text-[12px] text-muted sm:px-5">
           <span>© {year} QueueDesk · Temple queue &amp; events</span>
-          <span className="deva text-[13px] text-amber-dark" aria-hidden="true">
-            ॐ शांति शांति शांति
+          <span className="cn text-[13px] text-amber-dark" aria-hidden="true">
+            平安
           </span>
         </div>
       </div>
