@@ -212,7 +212,7 @@ export function TokenForm({ tokens, waitingCount, openDates }: TokenFormProps) {
 
         {otpInfo?.devCode && (
           <p role="note" className="rounded-md border border-dashed border-amber bg-amber-light px-3 py-2 text-[12.5px] leading-5 text-amber-dark">
-            Test mode: no message was sent. Your code is{' '}
+            Temporary: sending the code by WhatsApp is not switched on yet, so it is shown here. Your code is{' '}
             <b className="font-serif text-[16px] tracking-[0.2em]">{otpInfo.devCode}</b>
           </p>
         )}
