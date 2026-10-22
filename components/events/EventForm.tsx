@@ -8,6 +8,7 @@ import { isoToKolkataInput, kolkataLocalToIso } from '@/lib/event-time';
 import { validateEventForm } from '@/lib/validators';
 import { EventFormValues, EventSummary, RegistrationState } from '@/types/event';
 import { Button } from '@/components/ui/Button';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { Input } from '@/components/ui/Input';
 import { TextArea } from '@/components/ui/TextArea';
 import { useToast } from '@/components/ui/Toast';
@@ -117,7 +118,8 @@ export function EventForm({ event }: { event?: EventSummary }) {
   }
 
   async function persist(publish: boolean) {
-    const nextErrors = validateEventForm(values);
+    // When editing, only dates that were changed are checked against today.
+    const nextErrors = validateEventForm(values, { original: event ? fromEvent(event) : undefined });
     setErrors(nextErrors);
     setShowErrors(true);
     if (Object.keys(nextErrors).length > 0 || imageError) {
@@ -159,7 +161,14 @@ export function EventForm({ event }: { event?: EventSummary }) {
     void persist(false);
   }
 
-  const visible = showErrors ? errors : {};
+  // Date problems show as soon as a date is picked (not only after pressing Save), and update
+  // as the other dates change. Everything else waits until the first Save/Publish attempt.
+  const live = validateEventForm(values, { original: event ? fromEvent(event) : undefined });
+  const scheduleFields = ['registrationOpensAt', 'registrationClosesAt', 'startsAt', 'endsAt'] as const;
+  const visible: typeof live = showErrors ? { ...live } : {};
+  for (const field of scheduleFields) {
+    if (live[field] && values[field]) visible[field] = live[field];
+  }
 
   return (
     <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
@@ -186,10 +195,10 @@ export function EventForm({ event }: { event?: EventSummary }) {
             <p className="mt-1 text-[12.5px] leading-5 text-muted">All times are in India Standard Time (IST).</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="registration-opens" label="Registration opens *" type="datetime-local" value={values.registrationOpensAt} onChange={(item) => update('registrationOpensAt', item.target.value)} error={visible.registrationOpensAt} required />
-            <Input id="registration-closes" label="Registration closes *" type="datetime-local" value={values.registrationClosesAt} onChange={(item) => update('registrationClosesAt', item.target.value)} error={visible.registrationClosesAt} required />
-            <Input id="event-starts" label="Event starts *" type="datetime-local" value={values.startsAt} onChange={(item) => update('startsAt', item.target.value)} error={visible.startsAt} required />
-            <Input id="event-ends" label="Event ends *" type="datetime-local" value={values.endsAt} onChange={(item) => update('endsAt', item.target.value)} error={visible.endsAt} required />
+            <DateTimePicker id="registration-opens" label="Registration opens *" value={values.registrationOpensAt} onChange={(v) => update('registrationOpensAt', v)} error={visible.registrationOpensAt} />
+            <DateTimePicker id="registration-closes" label="Registration closes *" value={values.registrationClosesAt} onChange={(v) => update('registrationClosesAt', v)} error={visible.registrationClosesAt} minValue={values.registrationOpensAt} minLabel="registration opens" align="right" />
+            <DateTimePicker id="event-starts" label="Event starts *" value={values.startsAt} onChange={(v) => update('startsAt', v)} error={visible.startsAt} minValue={values.registrationClosesAt} minLabel="registration closes" />
+            <DateTimePicker id="event-ends" label="Event ends *" value={values.endsAt} onChange={(v) => update('endsAt', v)} error={visible.endsAt} minValue={values.startsAt} minLabel="the event start" align="right" />
           </div>
           {visible.schedule && <p className="text-[12px] font-semibold leading-5 text-coral-dark">{visible.schedule}</p>}
         </div>

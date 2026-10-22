@@ -1,3 +1,5 @@
+import { addYearsLocal, isRealLocal, nowLocalIst } from './datetime-local';
+
 export function isValidMobile(mobile: string): boolean {
   return /^\d{10}$/.test(mobile);
 }
@@ -68,15 +70,29 @@ export interface EventFormErrors {
   schedule?: string;
 }
 
-export function validateEventForm(values: {
-  title: string;
-  description: string;
-  venue: string;
-  registrationOpensAt: string;
-  registrationClosesAt: string;
-  startsAt: string;
-  endsAt: string;
-}): EventFormErrors {
+type ScheduleField = 'registrationOpensAt' | 'registrationClosesAt' | 'startsAt' | 'endsAt';
+
+export interface EventFormOptions {
+  /** The saved values when editing, so dates that were not changed are left alone. */
+  original?: Partial<Record<ScheduleField, string>>;
+  /** Override "now" ("YYYY-MM-DDTHH:mm", Indian time); used by tests. */
+  now?: string;
+}
+
+const MAX_YEARS_AHEAD = 3;
+
+export function validateEventForm(
+  values: {
+    title: string;
+    description: string;
+    venue: string;
+    registrationOpensAt: string;
+    registrationClosesAt: string;
+    startsAt: string;
+    endsAt: string;
+  },
+  options: EventFormOptions = {},
+): EventFormErrors {
   const errors: EventFormErrors = {};
 
   if (values.title.trim().length < 3) {
@@ -89,26 +105,53 @@ export function validateEventForm(values: {
     errors.venue = 'Enter the venue';
   }
 
-  const opens = Date.parse(values.registrationOpensAt);
-  const closes = Date.parse(values.registrationClosesAt);
-  const starts = Date.parse(values.startsAt);
-  const ends = Date.parse(values.endsAt);
-  const missing = [values.registrationOpensAt, values.registrationClosesAt, values.startsAt, values.endsAt].some(
-    (value) => !value,
-  );
+  const now = options.now ?? nowLocalIst();
+  const limit = addYearsLocal(now, MAX_YEARS_AHEAD);
+  const fields: ScheduleField[] = ['registrationOpensAt', 'registrationClosesAt', 'startsAt', 'endsAt'];
 
   if (!values.registrationOpensAt) errors.registrationOpensAt = 'Choose when registration opens';
   if (!values.registrationClosesAt) errors.registrationClosesAt = 'Choose when registration closes';
   if (!values.startsAt) errors.startsAt = 'Choose when the event starts';
   if (!values.endsAt) errors.endsAt = 'Choose when the event ends';
 
-  if (!missing && ![opens, closes, starts, ends].some((value) => Number.isNaN(value))) {
-    if (!(opens < closes)) {
-      errors.schedule = 'Registration close must be after registration open';
-    } else if (closes > starts) {
-      errors.schedule = 'Registration must close at or before the event starts';
-    } else if (!(starts < ends)) {
-      errors.schedule = 'Event end must be after the event starts';
+  // A value that is present must be a real calendar date and time.
+  for (const field of fields) {
+    const value = values[field];
+    if (value && !isRealLocal(value)) errors[field] = 'Choose a real date and time';
+  }
+
+  // Past and far-future checks apply only to dates that are new or changed, so an
+  // old event can still be edited. Registration may open in the past ("open now").
+  const changed = (field: ScheduleField) => values[field] !== options.original?.[field];
+  const pastMessage: Partial<Record<ScheduleField, string>> = {
+    registrationClosesAt: 'Registration cannot close in the past',
+    startsAt: 'The event cannot start in the past',
+    endsAt: 'The event cannot end in the past',
+  };
+  for (const field of fields) {
+    const value = values[field];
+    if (errors[field] || !value || !changed(field)) continue;
+    const message = pastMessage[field];
+    if (message && value < now) errors[field] = message;
+    else if (value > limit) errors[field] = `That is more than ${MAX_YEARS_AHEAD} years away. Check the year.`;
+  }
+
+  // Order: opens < closes <= starts < ends. Each pair is checked as soon as both of its dates
+  // are filled in, so a conflict shows up while the form is still being completed.
+  const real = (field: ScheduleField) => Boolean(values[field]) && isRealLocal(values[field]);
+  if (real('registrationOpensAt') && real('registrationClosesAt')) {
+    if (!(values.registrationOpensAt < values.registrationClosesAt)) {
+      errors.registrationClosesAt ??= 'Registration must close after it opens';
+    }
+  }
+  if (real('registrationClosesAt') && real('startsAt')) {
+    if (values.registrationClosesAt > values.startsAt) {
+      errors.registrationClosesAt ??= 'Registration must close before the event starts';
+    }
+  }
+  if (real('startsAt') && real('endsAt')) {
+    if (!(values.startsAt < values.endsAt)) {
+      errors.endsAt ??= 'The event must end after it starts';
     }
   }
 

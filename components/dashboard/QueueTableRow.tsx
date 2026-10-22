@@ -62,7 +62,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
                 runAction(
                   'call',
                   () => apiClient.callToken(token.id),
-                  `WhatsApp sent to +91 ${token.mobile}: "Your token ${token.tokenNumber} has been called."`,
+                  `Notification sent on WhatsApp to +91 ${token.mobile}: token ${token.tokenNumber} has been called.`,
                 )
               }
             >
@@ -96,7 +96,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
                 runAction(
                   'recall',
                   () => apiClient.recallToken(token.id),
-                  `WhatsApp re-sent to +91 ${token.mobile}: "Your token ${token.tokenNumber} has been called."`,
+                  `Notification sent again on WhatsApp to +91 ${token.mobile}: token ${token.tokenNumber} has been called.`,
                 )
               }
             >

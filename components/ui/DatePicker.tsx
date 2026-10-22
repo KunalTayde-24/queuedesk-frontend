@@ -16,6 +16,8 @@ interface DatePickerProps {
   /** Selected date as "YYYY-MM-DD", or null. */
   value: string | null;
   onChange: (key: string) => void;
+  /** Dates before this ("YYYY-MM-DD") cannot be chosen, and you cannot page back past its month. */
+  min?: string;
   /** Which dates can be chosen. Everything is selectable when omitted. */
   isEnabled?: (key: string) => boolean;
   /** Dates that get a small gold dot (for example, dates that are open). */
@@ -29,10 +31,12 @@ interface DatePickerProps {
  * A month calendar. The browser's own date input cannot grey out an arbitrary
  * set of dates, and "only these dates are open" is the whole point here.
  */
-export function DatePicker({ value, onChange, isEnabled, isMarked, legend, className }: DatePickerProps) {
+export function DatePicker({ value, onChange, min, isEnabled, isMarked, legend, className }: DatePickerProps) {
   const today = todayKey();
   const [month, setMonth] = useState(() => (value ?? today).slice(0, 7) + '-01');
   const cells = monthGrid(month);
+  // No point paging back to a month where every day is already unavailable.
+  const atEarliestMonth = min ? month.slice(0, 7) <= min.slice(0, 7) : false;
 
   return (
     <div className={clsx('w-full max-w-[320px] select-none', className)}>
@@ -40,8 +44,9 @@ export function DatePicker({ value, onChange, isEnabled, isMarked, legend, class
         <button
           type="button"
           aria-label="Previous month"
+          disabled={atEarliestMonth}
           onClick={() => setMonth((m) => addMonthsToKey(m, -1))}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-violet-soft hover:text-violet-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-violet-soft hover:text-violet-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
@@ -70,7 +75,7 @@ export function DatePicker({ value, onChange, isEnabled, isMarked, legend, class
         ))}
         {cells.map((key, i) => {
           if (!key) return <div key={`blank-${i}`} />;
-          const enabled = isEnabled ? isEnabled(key) : true;
+          const enabled = (!min || key >= min) && (isEnabled ? isEnabled(key) : true);
           const selected = key === value;
           const marked = isMarked?.(key) ?? false;
           return (
