@@ -72,7 +72,7 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
 
           <div className="relative z-10 flex items-center justify-between gap-3 px-1.5 pt-1.5">
             <div className="flex items-center gap-2.5 text-[16px] font-extrabold">
-              <TempleLogo className="h-10 !text-[#FFE3A1]" />
+              <TempleLogo mono className="h-10 !text-[#FFE3A1]" />
               QueueDesk
             </div>
             <div className="flex items-center gap-2">

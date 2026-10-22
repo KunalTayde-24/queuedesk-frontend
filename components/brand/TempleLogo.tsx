@@ -15,12 +15,26 @@ const VARIANTS = {
  */
 export function TempleLogo({
   variant = 'full',
+  mono = false,
   className,
 }: {
   variant?: keyof typeof VARIANTS;
+  /** Draw the single-colour traced logo in the current text colour instead of the supplied artwork. */
+  mono?: boolean;
   className?: string;
 }) {
   const { file, ratio } = VARIANTS[variant];
+  if (!mono) {
+    // Supplied artwork: a light-mode and a dark-mode version, swapped by theme.
+    return (
+      <span role="img" aria-label="慈雷宮 temple logo" className={clsx('inline-flex flex-shrink-0', className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/logo-light.png" alt="" className="block h-full w-auto dark:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/logo-dark.png" alt="" className="hidden h-full w-auto dark:block" />
+      </span>
+    );
+  }
   return (
     <span
       role="img"

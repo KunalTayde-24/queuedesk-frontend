@@ -89,7 +89,7 @@ export function KioskClient({
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,6,3,0)_0px,rgba(18,6,3,0)_170px,rgba(18,6,3,1)_380px)] lg:bg-[linear-gradient(90deg,rgba(18,6,3,0.9)_0%,rgba(18,6,3,0.72)_42%,rgba(18,6,3,0.05)_78%)]"
         />
         <div className="relative z-10 flex min-w-0 flex-col justify-center gap-4 px-5 pb-6 pt-[250px] text-[#FFF3DA] sm:px-8 sm:pb-8 sm:pt-[250px] lg:px-9 lg:py-10">
-          <TempleLogo className="h-14 self-start !text-[#FFE3A1] sm:h-16" />
+          <TempleLogo mono className="h-14 self-start !text-[#FFE3A1] sm:h-16" />
           <span className="eyebrow !text-[#FFC86B]">
             <span className="cn !text-[#F2C66D]" aria-hidden="true">
               欢迎光临

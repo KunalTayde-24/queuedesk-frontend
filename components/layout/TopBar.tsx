@@ -83,7 +83,10 @@ export function TopBar() {
   // signed in (on any page, so you can always get back), or while you are on
   // an /admin page such as the login form.
   const onAdminPage = pathname.startsWith('/admin');
-  const visibleNav = NAV.filter((item) => item.href !== '/admin/login' || signedIn || onAdminPage).map((item) =>
+  // On admin pages the public tabs (Home, Events, Now serving) are hidden.
+  const visibleNav = NAV.filter((item) =>
+    onAdminPage ? item.href === '/admin/login' : item.href !== '/admin/login' || signedIn,
+  ).map((item) =>
     item.href === '/admin/login' && signedIn ? { ...item, href: '/admin/dashboard' } : item,
   );
 
@@ -127,7 +130,7 @@ export function TopBar() {
           </button>
 
           <Link href="/" className={clsx('flex min-w-0 items-center gap-2.5 rounded-lg sm:ml-1.5', FOCUS_RING)}>
-            <TempleLogo className="h-11" />
+            <TempleLogo className="h-12" />
             <span className="leading-tight">
               <span className="block text-[15px] font-extrabold tracking-tight">QueueDesk</span>
               <span className="block min-h-[15px] text-[11px] font-semibold text-muted">{today}</span>
@@ -173,7 +176,7 @@ export function TopBar() {
         </nav>
 
         <div className="flex items-center gap-1.5">
-          {myToken && (
+          {myToken && !onAdminPage && (
             <Link
               href="/#my-ticket"
               aria-label={`My token, number ${myToken.tokenNumber}`}

@@ -31,7 +31,13 @@ export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }
   return (
     <section aria-label="Queue date" className="mb-4 rounded-card border border-line bg-card p-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" aria-label="Previous day" onClick={() => onSelect(addDaysToKey(date, -1))} className={ICON_BUTTON}>
+        <button
+          type="button"
+          aria-label="Previous day"
+          disabled={date <= today}
+          onClick={() => onSelect(addDaysToKey(date, -1))}
+          className={clsx(ICON_BUTTON, 'disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-line disabled:hover:text-muted')}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -110,6 +116,7 @@ export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }
               onSelect(key);
               setCalendarOpen(false);
             }}
+            min={today}
             isMarked={(key) => openSet.has(key)}
             legend="Gold dots are dates open for visitors."
           />
