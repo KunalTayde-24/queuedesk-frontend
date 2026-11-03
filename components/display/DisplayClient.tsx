@@ -9,6 +9,7 @@ import { countByStatus, sortByTokenNumberAsc } from '@/lib/queue-utils';
 import { Token, TokenStatus } from '@/types/token';
 import { NowServingPanel } from './NowServingPanel';
 import { UpNextList } from './UpNextList';
+import { UpcomingQueues } from './UpcomingQueues';
 
 const UP_NEXT_COUNT = 4;
 const AVG_MIN = 5;
@@ -92,6 +93,7 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
 
           <NowServingPanel current={current} />
           <UpNextList tokens={upNext} />
+          <UpcomingQueues />
 
           <div className="relative z-10 mt-4 flex flex-wrap justify-between gap-x-4 gap-y-1 px-1.5 text-[12px] opacity-80">
             <span>
