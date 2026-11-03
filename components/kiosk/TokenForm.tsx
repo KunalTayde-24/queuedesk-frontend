@@ -368,6 +368,8 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
   }
 
   const noDates = openDates.dates.length === 0;
+  // `events` is missing if the backend is an older version, so never assume it is there.
+  const dateEvents = (openDates.events ?? []).filter((e) => e.date === date);
   // The button stays disabled until the name, mobile number and Terms box are all done.
   const canSubmit = !noDates && name.trim().length > 0 && national.length > 0 && agreed;
   const relative = date ? relativeDayLabel(date, today) : '';
@@ -455,9 +457,9 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
             {errors.date}
           </span>
         )}
-        {date && openDates.events.filter((e) => e.date === date).length > 0 && (
+        {date && dateEvents.length > 0 && (
           <p className="text-[12.5px] font-semibold leading-5 text-amber-dark">
-            Event: {openDates.events.filter((e) => e.date === date).map((e) => e.title).join(', ')}
+            Event: {dateEvents.map((e) => e.title).join(', ')}
           </p>
         )}
         {noDates && (

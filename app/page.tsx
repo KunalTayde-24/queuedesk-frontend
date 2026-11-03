@@ -21,7 +21,8 @@ async function fetchOpenDates(): Promise<OpenDates> {
   try {
     const res = await fetch(`${process.env.API_URL}/tokens/dates`, { cache: 'no-store' });
     if (!res.ok) return { today: '', dates: [], events: [] };
-    return res.json();
+    const data = (await res.json()) as Partial<OpenDates>;
+    return { today: data.today ?? '', dates: data.dates ?? [], events: data.events ?? [] };
   } catch {
     return { today: '', dates: [], events: [] };
   }

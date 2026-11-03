@@ -124,9 +124,9 @@ export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }
             : 'Visitors cannot pick this date until you open it. Staff can still add walk-ins.'}
         {summary && summary.tokenCount > 0 ? ` ${summary.tokenCount} ${summary.tokenCount === 1 ? 'token' : 'tokens'} so far.` : ''}
       </p>
-      {summary && summary.events.length > 0 && (
+      {summary && (summary.events ?? []).length > 0 && (
         <p className="mt-1 text-[12.5px] font-semibold leading-5 text-amber-dark">
-          Event: {summary.events.map((e) => e.title).join(', ')}
+          Event: {(summary.events ?? []).map((e) => e.title).join(', ')}
         </p>
       )}
 
