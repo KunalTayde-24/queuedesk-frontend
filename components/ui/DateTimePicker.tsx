@@ -16,13 +16,13 @@ import {
 interface DateTimePickerProps {
   id: string;
   label: string;
-  /** "YYYY-MM-DDTHH:mm" (Indian time), or an empty string when nothing is chosen. */
+  /** "YYYY-MM-DDTHH:mm" (Singapore time), or an empty string when nothing is chosen. */
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  /** The earliest allowed moment ("YYYY-MM-DDTHH:mm"), e.g. when registration opens. Earlier days are greyed out. */
+  /** The earliest allowed moment ("YYYY-MM-DDTHH:mm"), e.g. when the event starts. Earlier days are greyed out. */
   minValue?: string;
-  /** Names that earlier field in the hint ("registration opens"). */
+  /** Names that earlier field in the hint ("the event start"). */
   minLabel?: string;
   /** Allow dates before today. Off by default: events are scheduled today or later. */
   allowPast?: boolean;
@@ -90,6 +90,9 @@ export function DateTimePicker({ id, label, value, onChange, error, minValue, mi
     // Choosing the same day as the earlier field: start from its time rather than an earlier one.
     if (minValue && next < minValue && date === minValue.slice(0, 10)) next = minValue;
     onChange(next);
+    // The date is the main choice, so close the calendar once it is picked (time can be changed by reopening).
+    setOpen(false);
+    triggerRef.current?.focus();
   }
 
   function pickTime(nextHour12: number, nextPeriod: Period, nextMinute: number) {
@@ -156,7 +159,7 @@ export function DateTimePicker({ id, label, value, onChange, error, minValue, mi
 
           <div className="mt-3 border-t border-line pt-3">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[12px] font-bold text-ink/80">Time (IST)</span>
+              <span className="text-[12px] font-bold text-ink/80">Time (SGT)</span>
               {parsed && (
                 <span className="text-[12px] font-semibold text-muted">{formatTime12(parsed.hour, parsed.minute)}</span>
               )}

@@ -28,7 +28,7 @@ export function googleCalendarUrl(event: CalendarEvent, pageUrl: string) {
     action: 'TEMPLATE',
     text: event.title,
     dates: `${stamp(event.startsAt)}/${stamp(event.endsAt)}`,
-    details: `${event.description}\n\nDetails and registration: ${pageUrl}`,
+    details: `${event.description}\n\nEvent details: ${pageUrl}`,
     location: event.venue,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -46,7 +46,7 @@ export function buildIcs(event: CalendarEvent, pageUrl: string) {
     `DTSTART:${stamp(event.startsAt)}`,
     `DTEND:${stamp(event.endsAt)}`,
     `SUMMARY:${icsEscape(event.title)}`,
-    `DESCRIPTION:${icsEscape(`${event.description}\n\nDetails and registration: ${pageUrl}`)}`,
+    `DESCRIPTION:${icsEscape(`${event.description}\n\nEvent details: ${pageUrl}`)}`,
     `LOCATION:${icsEscape(event.venue)}`,
     `URL:${pageUrl}`,
     'END:VEVENT',

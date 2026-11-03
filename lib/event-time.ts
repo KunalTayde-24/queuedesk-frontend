@@ -1,11 +1,11 @@
-const TIME_ZONE = 'Asia/Kolkata';
-const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+const TIME_ZONE = 'Asia/Singapore';
+const SGT_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 function part(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {
   return parts.find((item) => item.type === type)?.value ?? '';
 }
 
-export function kolkataLocalToDate(value: string): Date | null {
+export function sgtLocalToDate(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
   if (!match) return null;
   const date = new Date(
@@ -15,20 +15,20 @@ export function kolkataLocalToDate(value: string): Date | null {
       Number(match[3]),
       Number(match[4]),
       Number(match[5]),
-    ) - IST_OFFSET_MS,
+    ) - SGT_OFFSET_MS,
   );
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export function kolkataLocalToIso(value: string): string {
-  const date = kolkataLocalToDate(value);
+export function sgtLocalToIso(value: string): string {
+  const date = sgtLocalToDate(value);
   if (!date) {
     throw new Error('Enter a valid date and time');
   }
   return date.toISOString();
 }
 
-export function isoToKolkataInput(iso: string): string {
+export function isoToSgtInput(iso: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: TIME_ZONE,
     year: 'numeric',
@@ -42,7 +42,7 @@ export function isoToKolkataInput(iso: string): string {
   return `${part(parts, 'year')}-${part(parts, 'month')}-${part(parts, 'day')}T${hour === '24' ? '00' : hour}:${part(parts, 'minute')}`;
 }
 
-/** Day number and short month in IST, for the date seal on event cards. */
+/** Day number and short month in Singapore time, for the date seal on event cards. */
 export function eventDayMonth(iso: string): { day: string; month: string } | null {
   const date = new Date(iso);
   if (!iso || Number.isNaN(date.getTime())) return null;

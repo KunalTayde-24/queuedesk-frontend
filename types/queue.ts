@@ -2,6 +2,8 @@
 export interface OpenDates {
   today: string;
   dates: string[];
+  /** Published events attached to those dates. */
+  events: { date: string; id: string; title: string }[];
 }
 
 /** One day on the admin calendar. */
@@ -9,6 +11,8 @@ export interface QueueDaySummary {
   date: string;
   open: boolean;
   tokenCount: number;
+  /** Published events that opened this date. */
+  events: { id: string; title: string }[];
 }
 
 export interface AdminQueueDays {

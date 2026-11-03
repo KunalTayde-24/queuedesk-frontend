@@ -11,6 +11,7 @@ import { eventImageSrc } from '@/lib/events';
 import { EventSummary } from '@/types/event';
 import { OpenDates } from '@/types/queue';
 import { TokenForm } from './TokenForm';
+import { useAutoRefresh } from '@/lib/use-auto-refresh';
 
 // Rough per-person service time, used only for the "estimated wait" hint.
 const AVG_MIN = 5;
@@ -68,11 +69,15 @@ export function KioskClient({
   initialTokens,
   upcomingEvents,
   openDates,
+  defaultDate,
 }: {
   initialTokens: Token[];
   upcomingEvents: EventSummary[];
   openDates: OpenDates;
+  defaultDate?: string;
 }) {
+  // Re-reads the open dates and events, so a date the admin closes disappears without a page reload.
+  useAutoRefresh(10_000);
   const tokens = useRealtimeTokens(initialTokens);
   const { waiting } = countByStatus(tokens);
   const called = sortByTokenNumberAsc(tokens.filter((t) => t.status === TokenStatus.CALLED)).at(-1);
@@ -106,7 +111,9 @@ export function KioskClient({
             Get a token in seconds and look around the temple grounds while you wait. We&apos;ll send you a WhatsApp
             message the moment it&apos;s your turn.
           </p>
-          <TokenForm tokens={tokens} waitingCount={waiting} openDates={openDates} />
+          <div id="get-token" className="scroll-mt-24">
+            <TokenForm tokens={tokens} waitingCount={waiting} openDates={openDates} defaultDate={defaultDate} />
+          </div>
         </div>
       </section>
 

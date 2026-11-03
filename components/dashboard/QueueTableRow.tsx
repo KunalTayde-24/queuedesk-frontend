@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { displayMobile } from '@/lib/phone';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '@/components/ui/ActionButton';
 import { CallIcon, RecallIcon, SkipIcon, DoneIcon, DeleteIcon } from '@/components/ui/icons';
@@ -46,7 +47,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
       <span className="token-number text-[18px] font-black text-violet">{token.tokenNumber}</span>
       <span className="min-w-0 truncate font-bold">{token.name}</span>
       <span className="hidden whitespace-nowrap text-[12.5px] font-medium text-muted sm:block">
-        +91 {token.mobile}
+        {displayMobile(token.mobile)}
       </span>
       <span className="justify-self-end sm:justify-self-start">
         <Badge status={token.status} />
@@ -62,7 +63,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
                 runAction(
                   'call',
                   () => apiClient.callToken(token.id),
-                  `Notification sent on WhatsApp to +91 ${token.mobile}: token ${token.tokenNumber} has been called.`,
+                  `Notification sent on WhatsApp to ${displayMobile(token.mobile)}: token ${token.tokenNumber} has been called.`,
                 )
               }
             >
@@ -96,7 +97,7 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
                 runAction(
                   'recall',
                   () => apiClient.recallToken(token.id),
-                  `Notification sent again on WhatsApp to +91 ${token.mobile}: token ${token.tokenNumber} has been called.`,
+                  `Notification sent again on WhatsApp to ${displayMobile(token.mobile)}: token ${token.tokenNumber} has been called.`,
                 )
               }
             >

@@ -3,7 +3,7 @@ import { loadPublicEvents } from '@/lib/events-data';
 
 export const metadata = {
   title: 'Events · QueueDesk',
-  description: 'Browse upcoming events and register while registration is open.',
+  description: 'Browse upcoming temple events and take a queue token for the day.',
 };
 
 export default async function EventsPage() {

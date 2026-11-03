@@ -32,8 +32,8 @@ export function SiteFooter() {
             <TempleLogo className="h-[72px]" />
           </Link>
           <p className="mt-3 max-w-[34ch] text-[13px] leading-6 text-muted">
-            Skip the line, keep the calm. Get a token from your phone, watch the live board and register for temple
-            festivals.
+            Skip the line, keep the calm. Get a token from your phone, watch the live board and see temple
+            events.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export function SiteFooter() {
           <h2 className="mb-2 font-sans text-[11px] font-extrabold uppercase tracking-[0.1em] text-violet">Temple</h2>
           <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13px] text-muted">
             <li>Open daily</li>
-            <li>All times shown in IST</li>
+            <li>All times shown in Singapore time (SGT)</li>
             <li>
               <Link href="/admin/login" className={LINK}>
                 Staff sign in

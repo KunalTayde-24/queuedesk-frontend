@@ -20,14 +20,14 @@ async function fetchInitialTokens(): Promise<Token[]> {
 async function fetchOpenDates(): Promise<OpenDates> {
   try {
     const res = await fetch(`${process.env.API_URL}/tokens/dates`, { cache: 'no-store' });
-    if (!res.ok) return { today: '', dates: [] };
+    if (!res.ok) return { today: '', dates: [], events: [] };
     return res.json();
   } catch {
-    return { today: '', dates: [] };
+    return { today: '', dates: [], events: [] };
   }
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: { date?: string } }) {
   const [initialTokens, openDates, { events }] = await Promise.all([
     fetchInitialTokens(),
     fetchOpenDates(),
@@ -43,7 +43,12 @@ export default async function HomePage() {
   return (
     <main className="flex-1">
       <TopBar />
-      <KioskClient initialTokens={initialTokens} upcomingEvents={upcoming} openDates={openDates} />
+      <KioskClient
+        initialTokens={initialTokens}
+        upcomingEvents={upcoming}
+        openDates={openDates}
+        defaultDate={typeof searchParams?.date === 'string' ? searchParams.date : undefined}
+      />
     </main>
   );
 }

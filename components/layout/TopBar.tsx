@@ -92,7 +92,7 @@ export function TopBar() {
 
   useEffect(() => {
     setToday(
-      new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Singapore' }),
     );
   }, []);
 

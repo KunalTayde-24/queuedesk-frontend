@@ -11,7 +11,7 @@ import { Token } from '@/types/token';
  */
 const KEY = 'qd-my-token';
 const CHANGE_EVENT = 'qd-my-token-change';
-const IST_OFFSET_MS = 330 * 60 * 1000;
+const SGT_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 export interface MyToken {
   id: string;
@@ -23,8 +23,8 @@ export interface MyToken {
   createdAt: string;
 }
 
-function istDay(ms: number) {
-  return new Date(ms + IST_OFFSET_MS).toISOString().slice(0, 10);
+function sgtDay(ms: number) {
+  return new Date(ms + SGT_OFFSET_MS).toISOString().slice(0, 10);
 }
 
 function parse(raw: string | null): MyToken | null {
@@ -33,7 +33,7 @@ function parse(raw: string | null): MyToken | null {
     const t = JSON.parse(raw) as MyToken;
     if (!t || typeof t.id !== 'string' || typeof t.tokenNumber !== 'number') return null;
     // Tokens saved before dates existed were always for the day they were taken.
-    const date = typeof t.date === 'string' ? t.date.slice(0, 10) : istDay(Date.parse(t.createdAt));
+    const date = typeof t.date === 'string' ? t.date.slice(0, 10) : sgtDay(Date.parse(t.createdAt));
     if (date < todayKey()) return null;
     return { ...t, date };
   } catch {

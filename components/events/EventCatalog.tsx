@@ -3,24 +3,28 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { eventImageSrc } from '@/lib/events';
-import { EventSummary, RegistrationState } from '@/types/event';
+import { EventSummary } from '@/types/event';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { EventCard } from './EventCard';
 
-const FILTERS: { id: 'all' | RegistrationState; label: string }[] = [
+const FILTERS: { id: 'all' | 'upcoming' | 'past'; label: string }[] = [
   { id: 'all', label: 'All events' },
-  { id: 'OPEN', label: 'Open' },
-  { id: 'OPENS_SOON', label: 'Opening soon' },
-  { id: 'CLOSED', label: 'Closed' },
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'past', label: 'Past' },
 ];
+
+const hasEnded = (event: EventSummary) => new Date(event.endsAt).getTime() < Date.now();
 
 export function EventCatalog({ events, error }: { events: EventSummary[]; error: boolean }) {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('all');
   const visible = useMemo(
-    () => (filter === 'all' ? events : events.filter((event) => event.registrationState === filter)),
+    () =>
+      filter === 'all'
+        ? events
+        : events.filter((event) => (filter === 'past' ? hasEnded(event) : !hasEnded(event))),
     [events, filter],
   );
-  const featured = visible.find((event) => event.registrationState !== 'CLOSED') ?? visible[0];
+  const featured = visible.find((event) => !hasEnded(event)) ?? visible[0];
   const rest = featured ? visible.filter((event) => event.id !== featured.id) : [];
 
   return (
@@ -31,7 +35,7 @@ export function EventCatalog({ events, error }: { events: EventSummary[]; error:
           Upcoming events
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted sm:text-[14px]">
-          See what is coming up, then register with your name, mobile number, and email while a spot is open.
+          See what is coming up. On the day of an event the queue opens, so you can take a token for that date from the home page.
         </p>
       </header>
 
@@ -66,7 +70,7 @@ export function EventCatalog({ events, error }: { events: EventSummary[]; error:
           title={filter === 'all' ? 'No events yet' : 'No events match this filter'}
           text={
             filter === 'all'
-              ? 'When an event is published, it will appear here with the dates and a registration button.'
+              ? 'When an event is published, it will appear here with its dates, and the queue opens for those dates.'
               : 'Try another filter to see more events.'
           }
         >

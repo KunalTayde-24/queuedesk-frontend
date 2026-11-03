@@ -1,6 +1,6 @@
 import { CreateTokenRequest, LoginRequest, Token, WalkInRequest } from '@/types/token';
 import { AdminQueueDays, OpenDates, SendOtpResponse, VerifyOtpResponse } from '@/types/queue';
-import { EventRegistrationResult, EventSummary, Registrant, RegistrationRequest } from '@/types/event';
+import { EventSummary } from '@/types/event';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const isForm = typeof FormData !== 'undefined' && init?.body instanceof FormData;
@@ -53,6 +53,11 @@ export const apiClient = {
     request<{ date: string; open: true }>(`/api/admin/queue/days/${date}`, { method: 'PUT' }),
   closeQueueDay: (date: string) =>
     request<{ date: string; open: false }>(`/api/admin/queue/days/${date}`, { method: 'DELETE' }),
+  moveTokens: (from: string, to: string) =>
+    request<{ moved: number; skipped: number }>('/api/admin/queue/move', {
+      method: 'POST',
+      body: JSON.stringify({ from, to }),
+    }),
   createWalkIn: (data: WalkInRequest) =>
     request<Token>('/api/admin/queue/tokens', { method: 'POST', body: JSON.stringify(data) }),
   login: (data: LoginRequest) =>
@@ -73,11 +78,6 @@ export const apiClient = {
     request(`/api/queue-actions/${id}`, { method: 'DELETE' }),
   listEvents: () => request<EventSummary[]>('/api/events'),
   getEvent: (id: string) => request<EventSummary>(`/api/events/${id}`),
-  registerForEvent: (id: string, data: RegistrationRequest) =>
-    request<EventRegistrationResult>(`/api/events/${id}/registrations`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
   listAdminEvents: () => request<EventSummary[]>('/api/admin/events'),
   getAdminEvent: (id: string) => request<EventSummary>(`/api/admin/events/${id}`),
   saveEvent: (id: string | null, data: FormData) =>
@@ -89,10 +89,6 @@ export const apiClient = {
     request<EventSummary>(`/api/admin/events/${id}/publish`, { method: 'POST' }),
   unpublishEvent: (id: string) =>
     request<EventSummary>(`/api/admin/events/${id}/unpublish`, { method: 'POST' }),
-  cancelEvent: (id: string) =>
-    request<EventSummary>(`/api/admin/events/${id}/cancel`, { method: 'POST' }),
   deleteEvent: (id: string) =>
     request<{ success: true }>(`/api/admin/events/${id}`, { method: 'DELETE' }),
-  listRegistrants: (id: string) =>
-    request<Registrant[]>(`/api/admin/events/${id}/registrations`),
 };

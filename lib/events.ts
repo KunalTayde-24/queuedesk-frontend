@@ -1,5 +1,5 @@
 import { EventFormValues, EventSummary } from '@/types/event';
-import { kolkataLocalToIso } from './event-time';
+import { sgtLocalToIso } from './event-time';
 
 export const MAX_EVENT_IMAGE_BYTES = 2 * 1024 * 1024;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -24,10 +24,8 @@ export function eventToFormData(values: EventFormValues, image: File | null, rem
   form.set('title', values.title.trim());
   form.set('description', values.description.trim());
   form.set('venue', values.venue.trim());
-  form.set('registrationOpensAt', kolkataLocalToIso(values.registrationOpensAt));
-  form.set('registrationClosesAt', kolkataLocalToIso(values.registrationClosesAt));
-  form.set('startsAt', kolkataLocalToIso(values.startsAt));
-  form.set('endsAt', kolkataLocalToIso(values.endsAt));
+  form.set('startsAt', sgtLocalToIso(values.startsAt));
+  form.set('endsAt', sgtLocalToIso(values.endsAt));
   if (image) form.set('image', image);
   if (removeImage) form.set('removeImage', 'true');
   return form;

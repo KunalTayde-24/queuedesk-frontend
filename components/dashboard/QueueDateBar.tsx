@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { Button } from '@/components/ui/Button';
 import { addDaysToKey, formatDateKey, relativeDayLabel } from '@/lib/dates';
@@ -22,6 +22,23 @@ const ICON_BUTTON =
 /** Pick which date's queue to look at, and open or close that date for visitors. */
 export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }: QueueDateBarProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const barRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!calendarOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) setCalendarOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCalendarOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [calendarOpen]);
   const openSet = useMemo(() => new Set(days.filter((d) => d.open).map((d) => d.date)), [days]);
   const summary = days.find((d) => d.date === date);
   const isOpen = openSet.has(date);
@@ -29,7 +46,7 @@ export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }
   const relative = relativeDayLabel(date, today);
 
   return (
-    <section aria-label="Queue date" className="mb-4 rounded-card border border-line bg-card p-3 shadow-sm">
+    <section ref={barRef} aria-label="Queue date" className="mb-4 rounded-card border border-line bg-card p-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -107,6 +124,11 @@ export function QueueDateBar({ date, today, days, busy, onSelect, onToggleOpen }
             : 'Visitors cannot pick this date until you open it. Staff can still add walk-ins.'}
         {summary && summary.tokenCount > 0 ? ` ${summary.tokenCount} ${summary.tokenCount === 1 ? 'token' : 'tokens'} so far.` : ''}
       </p>
+      {summary && summary.events.length > 0 && (
+        <p className="mt-1 text-[12.5px] font-semibold leading-5 text-amber-dark">
+          Event: {summary.events.map((e) => e.title).join(', ')}
+        </p>
+      )}
 
       {calendarOpen && (
         <div className="mt-3 w-fit max-w-full rounded-xl border border-line bg-paper p-3">

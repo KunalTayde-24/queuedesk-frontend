@@ -1,5 +1,5 @@
 // Helpers for the "YYYY-MM-DDTHH:mm" strings the event form stores (the same
-// format a browser datetime-local field uses, in Indian time). No imports, so
+// format a browser datetime-local field uses, in Singapore time). No imports, so
 // these stay trivial to test.
 
 export interface LocalParts {
@@ -53,10 +53,10 @@ export function isRealLocal(value: string): boolean {
   return probe.getUTCFullYear() === y && probe.getUTCMonth() === m - 1 && probe.getUTCDate() === d;
 }
 
-/** The current moment in Indian time as "YYYY-MM-DDTHH:mm". */
+/** The current moment in Singapore time as "YYYY-MM-DDTHH:mm". */
 export function nowLocalIst(now: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
+    timeZone: 'Asia/Singapore',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

@@ -1,9 +1,9 @@
-// Queue dates are plain "YYYY-MM-DD" keys in Indian time, the same as the backend.
+// Queue dates are plain "YYYY-MM-DD" keys in Singapore time, the same as the backend.
 // Working with keys (never local Date objects) keeps a date from shifting with
 // the visitor's or the server's timezone.
-const QUEUE_TIME_ZONE = 'Asia/Kolkata';
+const QUEUE_TIME_ZONE = 'Asia/Singapore';
 
-/** Today's date in India, e.g. "2026-10-17". */
+/** Today's date in Singapore, e.g. "2026-10-17". */
 export function todayKey(now: Date = new Date()): string {
   // The en-CA locale formats dates as YYYY-MM-DD.
   return new Intl.DateTimeFormat('en-CA', {
@@ -85,4 +85,19 @@ export function monthGrid(monthKey: string): (string | null)[] {
     cells.push(toKey(date));
   }
   return cells;
+}
+
+/**
+ * The queue days an event covers, from its start/end as "YYYY-MM-DDTHH:mm" (Singapore time):
+ * every day from the start day to the end day (an end at exactly 00:00 does not claim that day).
+ * Capped at 14 days, the same as the server.
+ */
+export function eventDaysFromLocal(startsAt: string, endsAt: string): string[] {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startsAt) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(endsAt)) return [];
+  const first = startsAt.slice(0, 10);
+  let last = endsAt.slice(0, 10);
+  if (endsAt.slice(11, 16) === '00:00') last = addDaysToKey(last, -1);
+  const days: string[] = [];
+  for (let key = first; key <= last && days.length < 14; key = addDaysToKey(key, 1)) days.push(key);
+  return days;
 }

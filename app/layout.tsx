@@ -30,7 +30,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: 'QueueDesk · Temple Queue',
-  description: 'Temple queue and events: get a token, watch the board, register for festivals',
+  description: 'Temple queue and events: get a token, watch the board, see temple events',
 };
 
 // Applies the saved/system theme before first paint, so there's no

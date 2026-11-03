@@ -1,17 +1,5 @@
 import clsx from 'clsx';
-import { EventLifecycle, RegistrationState } from '@/types/event';
-
-const REGISTRATION_LABEL: Record<RegistrationState, string> = {
-  OPENS_SOON: 'Opens soon',
-  OPEN: 'Open',
-  CLOSED: 'Closed',
-};
-
-const REGISTRATION_CLASS: Record<RegistrationState, string> = {
-  OPENS_SOON: 'bg-amber-light text-amber-dark',
-  OPEN: 'bg-teal-light text-teal-dark',
-  CLOSED: 'bg-violet-light text-violet-dark',
-};
+import { EventLifecycle } from '@/types/event';
 
 const LIFECYCLE_LABEL: Record<EventLifecycle, string> = {
   DRAFT: 'Draft',
@@ -36,10 +24,6 @@ export function StatusPill({ className, children }: { className: string; childre
       {children}
     </span>
   );
-}
-
-export function RegistrationPill({ state }: { state: RegistrationState }) {
-  return <StatusPill className={REGISTRATION_CLASS[state]}>{REGISTRATION_LABEL[state]}</StatusPill>;
 }
 
 export function LifecyclePill({ status }: { status: EventLifecycle }) {

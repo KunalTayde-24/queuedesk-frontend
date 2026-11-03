@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: EventPageProps) {
   const event = await loadPublicEvent(params.id);
   return {
     title: event ? `${event.title} · QueueDesk` : 'Event · QueueDesk',
-    description: event?.description ?? 'Event registration',
+    description: event?.description ?? 'Temple event',
   };
 }
 

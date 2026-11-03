@@ -7,16 +7,17 @@ import { eventImageSrc } from '@/lib/events';
 import { formatEventDate } from '@/lib/event-time';
 import { downloadIcs, googleCalendarUrl, mapsDirectionsUrl, mapsEmbedUrl, mapsSearchUrl } from '@/lib/calendar';
 import { EventSummary } from '@/types/event';
-import { Button } from '@/components/ui/Button';
+import { todayKey } from '@/lib/dates';
 import { EventBanner } from './EventBanner';
-import { RegistrationPill } from './EventStatus';
-import { RegistrationDialog } from './RegistrationDialog';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
 const SECONDARY_LINK =
   'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-line bg-card px-3 text-[13px] font-bold leading-5 text-ink transition-colors hover:border-amber hover:bg-violet-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-paper';
+
+const PRIMARY_LINK =
+  'inline-flex min-h-11 items-center justify-center rounded-md bg-[linear-gradient(180deg,#D9412E,#B8262B)] px-4 text-center text-[13px] font-bold leading-5 text-white shadow-[inset_0_0_0_1px_rgba(242,198,109,0.5),0_6px_14px_-8px_rgba(184,38,43,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-paper';
 
 function countdown(event: EventSummary, now: number): { text: string; tone: 'soon' | 'live' | 'over' } | null {
   const start = Date.parse(event.startsAt);
@@ -66,7 +67,6 @@ function Timeline({ items, now }: { items: TimelineItem[]; now: number | null })
 }
 
 export function EventDetail({ event }: { event: EventSummary }) {
-  const [open, setOpen] = useState(false);
   const [now, setNow] = useState<number | null>(null);
   const [pageUrl, setPageUrl] = useState('');
   const imageSrc = eventImageSrc(event, 'public');
@@ -78,11 +78,17 @@ export function EventDetail({ event }: { event: EventSummary }) {
   }, []);
 
   const when = now === null ? null : countdown(event, now);
-  const statusCopy = event.canRegister
-    ? 'Registration is open'
-    : event.registrationState === 'OPENS_SOON'
-      ? `Registration opens ${formatEventDate(event.registrationOpensAt)}`
-      : 'Registration is closed';
+  const ended = when?.tone === 'over';
+  // The first upcoming day of the event: where "take a token" sends the visitor.
+  const firstDay = (() => {
+    const start = todayKey(new Date(event.startsAt));
+    const today = todayKey();
+    return start < today ? today : start;
+  })();
+  const tokenHref = `/?date=${firstDay}#get-token`;
+  const statusCopy = ended
+    ? 'This event has ended'
+    : 'The queue is open on the event day. Take a token to hold your place.';
   const hasVenue = event.venue.trim().length > 1;
 
   return (
@@ -92,7 +98,6 @@ export function EventDetail({ event }: { event: EventSummary }) {
           <EventBanner src={imageSrc} alt={imageSrc ? event.title : ''} seed={event.id} startsAt={event.startsAt} />
           <div className="grid gap-4 p-4 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <RegistrationPill state={event.registrationState} />
               {when && (
                 <span
                   className={clsx(
@@ -110,9 +115,11 @@ export function EventDetail({ event }: { event: EventSummary }) {
               <h1 className="break-words font-serif text-[1.5rem] font-bold leading-tight text-violet-dark sm:text-[1.875rem]">
                 {event.title}
               </h1>
+{event.description && (
               <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-ink sm:text-[14px]">
                 {event.description}
               </p>
+)}
             </div>
           </div>
         </div>
@@ -155,25 +162,19 @@ export function EventDetail({ event }: { event: EventSummary }) {
       <aside className="grid min-w-0 gap-4 lg:sticky lg:top-24">
         <div className="rounded-card border border-line bg-card p-4 shadow-card sm:p-5">
           <h2 className="font-serif text-[1.0625rem] font-bold leading-6 text-violet-dark">Timings</h2>
-          <p className="mb-4 mt-0.5 text-[12px] leading-5 text-muted">All times are in India Standard Time.</p>
+          <p className="mb-4 mt-0.5 text-[12px] leading-5 text-muted">All times are in Singapore time (SGT).</p>
           <Timeline
             now={now}
             items={[
-              { label: 'Registration opens', iso: event.registrationOpensAt },
-              { label: 'Registration closes', iso: event.registrationClosesAt },
               { label: 'Event starts', iso: event.startsAt },
               { label: 'Event ends', iso: event.endsAt },
             ]}
           />
           <p className="mt-5 text-sm font-semibold leading-6 text-ink">{statusCopy}</p>
-          {event.canRegister ? (
-            <Button type="button" className="mt-3 hidden min-h-11 w-full lg:inline-flex" onClick={() => setOpen(true)}>
-              Register now
-            </Button>
-          ) : (
-            <Button type="button" className="mt-3 hidden min-h-11 w-full lg:inline-flex" disabled>
-              {event.registrationState === 'OPENS_SOON' ? 'Registration not open' : 'Registration closed'}
-            </Button>
+          {!ended && (
+            <Link href={tokenHref} className={clsx(PRIMARY_LINK, 'mt-3 hidden lg:inline-flex')}>
+              Take a queue token
+            </Link>
           )}
         </div>
 
@@ -203,13 +204,14 @@ export function EventDetail({ event }: { event: EventSummary }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-[1080px] flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
           <p className="min-w-0 flex-1 break-words text-xs font-semibold leading-5 text-ink">{statusCopy}</p>
-          <Button type="button" className="min-h-11 w-full shrink-0 min-[420px]:w-auto" disabled={!event.canRegister} onClick={() => setOpen(true)}>
-            {event.canRegister ? 'Register now' : event.registrationState === 'OPENS_SOON' ? 'Opens soon' : 'Closed'}
-          </Button>
+          {!ended && (
+            <Link href={tokenHref} className={clsx(PRIMARY_LINK, 'w-full shrink-0 min-[420px]:w-auto')}>
+              Take a queue token
+            </Link>
+          )}
         </div>
       </div>
 
-      <RegistrationDialog event={event} open={open} onClose={() => setOpen(false)} />
     </article>
   );
 }

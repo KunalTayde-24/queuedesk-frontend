@@ -29,7 +29,7 @@ function Clock() {
   const [now, setNow] = useState('');
   useEffect(() => {
     const fmt = () =>
-      new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+      new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Singapore' });
     setNow(fmt());
     const id = setInterval(() => setNow(fmt()), 15_000);
     return () => clearInterval(id);

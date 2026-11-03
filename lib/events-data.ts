@@ -1,4 +1,4 @@
-import { EventSummary, Registrant } from '@/types/event';
+import { EventSummary } from '@/types/event';
 import { forwardToBackend } from './backend-proxy';
 import { getSessionToken } from './auth-cookie';
 
@@ -46,17 +46,5 @@ export async function loadAdminEvent(id: string): Promise<EventSummary | null> {
     return readJson<EventSummary>(res);
   } catch {
     return null;
-  }
-}
-
-export async function loadRegistrants(id: string): Promise<{ registrants: Registrant[]; error: boolean }> {
-  const token = getSessionToken();
-  if (!token) return { registrants: [], error: true };
-  try {
-    const res = await forwardToBackend(`/admin/events/${id}/registrations`, { method: 'GET', token });
-    if (!res.ok) return { registrants: [], error: true };
-    return { registrants: (await res.json()) as Registrant[], error: false };
-  } catch {
-    return { registrants: [], error: true };
   }
 }

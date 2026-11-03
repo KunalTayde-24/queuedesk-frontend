@@ -3,6 +3,8 @@
 import { FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PhoneInput } from '@/components/ui/PhoneInput';
+import { DEFAULT_COUNTRY } from '@/lib/phone';
 import { apiClient } from '@/lib/api-client';
 import { validateTokenForm } from '@/lib/validators';
 import { useToast } from '@/components/ui/Toast';
@@ -11,7 +13,9 @@ import { formatDateKey } from '@/lib/dates';
 export function AddWalkInForm({ date, onDone }: { date: string; onDone: () => void }) {
   const { show } = useToast();
   const [name, setName] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  const [national, setNational] = useState('');
+  const mobile = `${country}${national}`;
   const [errors, setErrors] = useState<{ name?: string; mobile?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,7 +30,7 @@ export function AddWalkInForm({ date, onDone }: { date: string; onDone: () => vo
       const token = await apiClient.createWalkIn({ name: name.trim(), mobile, date });
       show(`Token #${token.tokenNumber} created for ${token.name} (${formatDateKey(date)})`);
       setName('');
-      setMobile('');
+      setNational('');
       onDone();
     } catch (err) {
       show(err instanceof Error ? err.message : 'Failed to create token', 'error');
@@ -44,19 +48,23 @@ export function AddWalkInForm({ date, onDone }: { date: string; onDone: () => vo
           value={name}
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
-          placeholder="Walk-in customer name"
+          placeholder="e.g. Lim Mei Ling"
           className="min-w-[170px] flex-1 bg-card"
         />
-        <Input
-          id="walkin-mobile"
-          label="Mobile"
-          value={mobile}
-          onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-          error={errors.mobile}
-          placeholder="98765 43210"
-          inputMode="numeric"
-          className="min-w-[170px] flex-1 bg-card"
-        />
+        <div className="min-w-[230px] flex-1">
+          <PhoneInput
+            id="walkin-mobile"
+            label="Mobile"
+            country={country}
+            national={national}
+            onChange={(v) => {
+              setCountry(v.country);
+              setNational(v.national);
+            }}
+            error={errors.mobile}
+            placeholder="9123 4567"
+          />
+        </div>
         <Button type="submit" disabled={submitting} className="h-[42px] w-auto">
           {submitting ? 'Adding…' : 'Add token'}
         </Button>
