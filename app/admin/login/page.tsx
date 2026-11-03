@@ -35,11 +35,11 @@ export default function AdminLoginPage() {
     <main className="flex-1">
       <TopBar />
       <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
-        <section className="grid overflow-hidden rounded-[24px] border border-line bg-card shadow-lg md:grid-cols-2">
+        <section className="mx-auto grid max-w-[460px] overflow-hidden rounded-[24px] border border-line bg-card shadow-lg">
           <div
             role="img"
             aria-label="Temple with red lanterns"
-            className="temple-photo relative min-h-[190px] [background-position:65%_30%] md:min-h-[420px]"
+            className="temple-photo relative aspect-[1024/559] w-full [background-position:center] [background-size:100%_100%]"
           >
             <div
               aria-hidden="true"

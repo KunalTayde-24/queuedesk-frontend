@@ -40,6 +40,7 @@
 
     --bg-glow-1: 251 239 211;
     --bg-glow-2: 248 225 220;
+    --bg-veil: 0.45;
   }
 
   .dark {
@@ -71,6 +72,7 @@
 
     --bg-glow-1: 58 43 18;
     --bg-glow-2: 58 23 21;
+    --bg-veil: 0.62;
   }
 
   html {
@@ -79,11 +81,28 @@
 
   body {
     @apply flex min-h-screen flex-col font-sans text-[14px] leading-[1.55] text-ink antialiased transition-colors duration-200;
-    background:
-      radial-gradient(circle at 10% 0%, rgb(var(--bg-glow-1)) 0%, transparent 40%),
-      radial-gradient(circle at 100% 30%, rgb(var(--bg-glow-2)) 0%, transparent 35%),
-      rgb(var(--color-paper));
-    background-attachment: fixed;
+    background-color: rgb(var(--color-paper));
+  }
+  /* Page backdrop: the original photo, visible behind a light paper-coloured veil
+     that keeps text readable. */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  body::before {
+    background: url('/images/hero-pagoda.jpg') left center / cover no-repeat;
+  }
+  body::after {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--color-paper) / var(--bg-veil)) 0%,
+      rgb(var(--color-paper) / 0.6) 60%,
+      rgb(var(--color-paper) / 0.75) 100%
+    );
   }
   h1,
   h2,
@@ -128,16 +147,13 @@
   .eyebrow .cn {
     @apply text-[17px] normal-case tracking-[0.1em] text-amber-dark;
   }
-  /* Real temple photo as a section background (daytime, swapped for the night shot in dark mode). */
+  /* Real temple photo as a section background (same image in light and dark mode). */
   .temple-photo {
-    background-image: url('/images/temple-day.webp');
+    background-image: url('/images/bg-temple.jpg');
     background-size: cover;
     background-position: 70% 40%;
     background-repeat: no-repeat;
     background-color: #1a0d08;
-  }
-  .dark .temple-photo {
-    background-image: url('/images/temple-night.webp');
   }
 }
 

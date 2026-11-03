@@ -80,15 +80,16 @@ export function KioskClient({
   return (
     <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
       <section
-        className="temple-photo relative grid overflow-hidden rounded-[24px] border border-line shadow-lg [background-position:68%_0] [background-size:auto_380px] lg:min-h-[520px] lg:grid-cols-2 lg:[background-position:70%_40%] lg:[background-size:cover]"
+        className="temple-photo relative grid overflow-hidden rounded-[24px] border border-line shadow-lg [background-position:20%_0] [background-size:auto_380px] lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_380px] lg:[background-position:-100px_center] lg:[background-size:auto_100%]"
+        style={{ backgroundImage: "url('/images/hero-pagoda.jpg')" }}
         aria-label="Welcome"
       >
         {/* Darkening layer: heavy behind the text, clear over the temple. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,6,3,0)_0px,rgba(18,6,3,0)_170px,rgba(18,6,3,1)_380px)] lg:bg-[linear-gradient(90deg,rgba(18,6,3,0.9)_0%,rgba(18,6,3,0.72)_42%,rgba(18,6,3,0.05)_78%)]"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(18,6,3,0)_0px,rgba(18,6,3,0)_170px,rgba(18,6,3,1)_380px)] lg:bg-[linear-gradient(270deg,rgba(18,6,3,0.92)_0%,rgba(18,6,3,0.85)_32%,rgba(18,6,3,0)_48%)]"
         />
-        <div className="relative z-10 flex min-w-0 flex-col justify-center gap-4 px-5 pb-6 pt-[250px] text-[#FFF3DA] sm:px-8 sm:pb-8 sm:pt-[250px] lg:px-9 lg:py-10">
+        <div className="relative z-10 flex min-w-0 flex-col justify-center gap-4 lg:col-start-2 lg:pr-6 px-5 pb-6 pt-[250px] text-[#FFF3DA] sm:px-8 sm:pb-8 sm:pt-[250px] lg:pl-0 lg:py-10">
           <TempleLogo mono className="h-14 self-start !text-[#FFE3A1] sm:h-16" />
           <span className="eyebrow !text-[#FFC86B]">
             <span className="cn !text-[#F2C66D]" aria-hidden="true">
