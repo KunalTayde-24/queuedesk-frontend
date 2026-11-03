@@ -50,7 +50,11 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
       role="status"
       className="print-ticket relative w-full max-w-[420px] animate-popIn rounded-[20px] bg-[radial-gradient(circle_at_85%_10%,rgba(242,198,109,0.35),transparent_40%),linear-gradient(160deg,#C9302C,#9C1D22)] p-5 pb-4 text-[#FFF6E3] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.7),inset_0_0_0_7px_#9C1D22,inset_0_0_0_8px_rgba(242,198,109,0.45),0_20px_40px_-18px_rgba(156,29,34,0.9)] sm:p-6"
     >
-      <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.08em] opacity-90">
+      <div className="hidden text-center print:block">
+        <p className="cn text-[20pt] leading-tight">慈雷宮</p>
+        <p className="text-[10pt] font-bold uppercase tracking-[0.12em]">Ci Lei Gong · Queue ticket</p>
+      </div>
+      <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.08em] opacity-90 print:hidden">
         <span className="cn text-[22px] normal-case leading-[1.6] tracking-normal text-[#F7D27E]" aria-hidden="true">
           福
         </span>
@@ -65,7 +69,7 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
       )}
       <p
         className={clsx(
-          'my-3.5 rounded-xl px-3 py-2.5 text-center text-[13px] font-extrabold leading-5',
+          'print-status my-3.5 rounded-xl px-3 py-2.5 text-center text-[13px] font-extrabold leading-5',
           called ? 'animate-pulseRing bg-[#FFE3A1] text-[#7A1418]' : 'bg-black/20',
         )}
       >
@@ -87,6 +91,11 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
           <dt className="text-[11px] font-semibold opacity-80">WhatsApp</dt>
         </div>
       </dl>
+      <p className="mt-3 hidden text-center text-[9pt] leading-snug print:block">
+        Please keep this ticket. Come to the counter when your number is called.
+        <br />
+        Times are in Singapore time (SGT).
+      </p>
       <div className="mt-4 flex gap-2 print:hidden">
         <button
           type="button"

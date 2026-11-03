@@ -181,17 +181,75 @@
   }
 }
 
+@page {
+  size: A5 portrait;
+  margin: 12mm;
+}
+
 @media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+  }
+  /* Only the ticket is printed, and nothing else takes up space, so it is exactly one page. */
   body * {
     visibility: hidden;
+  }
+  body :not(.print-ticket):not(:has(.print-ticket)):not(.print-ticket *) {
+    display: none !important;
+  }
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
   .print-ticket,
   .print-ticket * {
     visibility: visible;
   }
   .print-ticket {
-    position: absolute;
-    left: 0;
+    position: fixed;
+    left: 50%;
     top: 0;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 100mm;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8mm 7mm 6mm !important;
+    border: 2px solid #000;
+    border-radius: 4mm;
+    background: #fff !important;
+    box-shadow: none !important;
+    animation: none !important;
+    break-inside: avoid;
+  }
+  /* Ink-friendly: black on white, no glow, no transparency. */
+  .print-ticket,
+  .print-ticket * {
+    color: #000 !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .print-ticket .print-status {
+    border: 1.5px solid #000;
+    border-radius: 3mm;
+  }
+  .print-ticket dl {
+    border-top: 1.5px dashed #000 !important;
+  }
+  .print-ticket .token-number {
+    font-size: 64pt !important;
+    line-height: 1.05 !important;
   }
 }
