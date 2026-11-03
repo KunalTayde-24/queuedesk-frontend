@@ -79,13 +79,11 @@ export function TopBar() {
     };
   }, [pathname]);
 
-  // Visitors never see an admin link on public pages. It shows once you are
-  // signed in (on any page, so you can always get back), or while you are on
-  // an /admin page such as the login form.
+  // Public pages never show an admin link, even when you are signed in on this browser
+  // (staff go to /admin/login directly). On admin pages only the admin tab is shown.
   const onAdminPage = pathname.startsWith('/admin');
-  // On admin pages the public tabs (Home, Events, Now serving) are hidden.
   const visibleNav = NAV.filter((item) =>
-    onAdminPage ? item.href === '/admin/login' : item.href !== '/admin/login' || signedIn,
+    onAdminPage ? item.href === '/admin/login' : item.href !== '/admin/login',
   ).map((item) =>
     item.href === '/admin/login' && signedIn ? { ...item, href: '/admin/dashboard' } : item,
   );

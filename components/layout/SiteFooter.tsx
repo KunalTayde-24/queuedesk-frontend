@@ -68,11 +68,6 @@ export function SiteFooter() {
           <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13px] text-muted">
             <li>Open daily</li>
             <li>All times shown in Singapore time (SGT)</li>
-            <li>
-              <Link href="/admin/login" className={LINK}>
-                Staff sign in
-              </Link>
-            </li>
           </ul>
         </div>
       </div>
