@@ -35,11 +35,12 @@ export default function AdminLoginPage() {
     <main className="flex-1">
       <TopBar />
       <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
-        <section className="mx-auto grid max-w-[460px] overflow-hidden rounded-[24px] border border-line bg-card shadow-lg">
+        <section className="mx-auto grid max-w-[460px] overflow-hidden rounded-[24px] border border-line bg-card shadow-lg md:max-w-[880px] md:grid-cols-2">
           <div
             role="img"
-            aria-label="Temple with red lanterns"
-            className="temple-photo relative aspect-[1024/559] w-full [background-position:center] [background-size:100%_100%]"
+            aria-label="Pagoda beside a misty waterfall"
+            className="temple-photo relative aspect-[1600/1000] w-full [background-position:center] [background-size:100%_100%] md:aspect-auto md:min-h-[460px] md:[background-position:12%_center] md:[background-size:cover]"
+            style={{ backgroundImage: "url('/images/hero-pagoda.jpg')" }}
           >
             <div
               aria-hidden="true"
