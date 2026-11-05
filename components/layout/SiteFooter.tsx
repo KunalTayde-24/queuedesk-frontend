@@ -13,6 +13,8 @@ const EXPLORE = [
 const VISITORS = [
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/#upcoming-heading', label: 'Upcoming events' },
+  { href: '/about', label: 'About & contact' },
+  { href: '/terms', label: 'Terms & Conditions' },
 ];
 
 export function SiteFooter() {
@@ -65,16 +67,23 @@ export function SiteFooter() {
 
         <div>
           <h2 className="mb-2 font-sans text-[11px] font-extrabold uppercase tracking-[0.1em] text-violet">Temple</h2>
-          <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13px] text-muted">
-            <li>Open daily</li>
-            <li>All times shown in Singapore time (SGT)</li>
+          <ul className="m-0 flex list-none flex-col p-0 text-[13px] text-muted">
+            <li className="inline-flex min-h-8 items-center font-bold text-ink">Ci Lei Gong Ltd</li>
+            <li>
+              <address className="not-italic leading-6">
+                50 Gambas Cresent, 10-44B,
+                <br />
+                Singapore 757022
+              </address>
+            </li>
+            <li className="mt-2 leading-6">All times shown in Singapore time (SGT)</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-4 text-[12px] text-muted sm:px-5">
-          <span>© {year} QueueDesk · Temple queue &amp; events</span>
+          <span>© {year} Ci Lei Gong Ltd · QueueDesk temple queue &amp; events</span>
           <span className="cn text-[13px] text-amber-dark" aria-hidden="true">
             平安
           </span>

@@ -40,6 +40,17 @@ const NAV = [
     ),
   },
   {
+    href: '/about',
+    label: 'About',
+    match: (p: string) => p.startsWith('/about'),
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v6M12 7.5v.5" />
+      </>
+    ),
+  },
+  {
     href: '/admin/login',
     label: 'Admin',
     match: (p: string) => p.startsWith('/admin'),
