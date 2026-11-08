@@ -8,6 +8,7 @@ export const metadata = {
 
 const ORG = {
   name: 'Ci Lei Gong Ltd',
+  uen: '202557151C',
   addressLines: ['50 Gambas Cresent,', '10-44B (Upper Deck),', 'Proxima@Gambas,', 'Singapore 757022'],
   phone: '+65 8257 9388',
   phoneHref: '+6582579388',
@@ -59,6 +60,10 @@ export default function AboutPage() {
                 <dd className={VALUE}>{ORG.name}</dd>
               </div>
               <div className={ROW}>
+                <dt className={LABEL}>UEN</dt>
+                <dd className={VALUE}>{ORG.uen}</dd>
+              </div>
+              <div className={ROW}>
                 <dt className={LABEL}>Address</dt>
                 <dd className={VALUE}>
                   <address className="not-italic">
@@ -87,6 +92,25 @@ export default function AboutPage() {
                 </dd>
               </div>
             </dl>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="text-[1.0625rem] font-bold text-violet-dark">Payment</h2>
+            <p className="mt-2 text-sm leading-6 text-ink">
+              Scan this PayNow QR code with your banking app to make a payment to {ORG.name} (UEN {ORG.uen}). Please check
+              that the payee name shown in your app is correct before you confirm.
+            </p>
+            <figure className="mt-4 inline-block rounded-xl border border-line bg-white p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/paynow-qr.jpeg"
+                alt={`PayNow QR code for ${ORG.name}`}
+                width={220}
+                height={220}
+                className="h-[220px] w-[220px] max-w-full"
+              />
+              <figcaption className="mt-2 text-center text-[12px] text-muted">PayNow · {ORG.name}</figcaption>
+            </figure>
           </section>
 
           <Link href="/" className="mt-8 inline-flex min-h-11 items-center text-sm font-bold text-violet">

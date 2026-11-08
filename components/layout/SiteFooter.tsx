@@ -69,6 +69,7 @@ export function SiteFooter() {
           <h2 className="mb-2 font-sans text-[11px] font-extrabold uppercase tracking-[0.1em] text-violet">Temple</h2>
           <ul className="m-0 flex list-none flex-col p-0 text-[13px] text-muted">
             <li className="inline-flex min-h-8 items-center font-bold text-ink">Ci Lei Gong Ltd</li>
+            <li className="leading-6">UEN: 202557151C</li>
             <li>
               <address className="not-italic leading-6">
                 50 Gambas Cresent, 10-44B,
