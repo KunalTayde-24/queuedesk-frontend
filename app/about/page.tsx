@@ -94,23 +94,61 @@ export default function AboutPage() {
             </dl>
           </section>
 
-          <section className="mt-8">
-            <h2 className="text-[1.0625rem] font-bold text-violet-dark">Payment</h2>
-            <p className="mt-2 text-sm leading-6 text-ink">
-              Scan this PayNow QR code with your banking app to make a payment to {ORG.name} (UEN {ORG.uen}). Please check
-              that the payee name shown in your app is correct before you confirm.
-            </p>
-            <figure className="mt-4 inline-block rounded-xl border border-line bg-white p-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/paynow-qr.jpeg"
-                alt={`PayNow QR code for ${ORG.name}`}
-                width={220}
-                height={220}
-                className="h-[220px] w-[220px] max-w-full"
-              />
-              <figcaption className="mt-2 text-center text-[12px] text-muted">PayNow · {ORG.name}</figcaption>
-            </figure>
+          <section className="mt-8" aria-labelledby="donation-heading">
+            <h2 id="donation-heading" className="text-[1.0625rem] font-bold text-violet-dark">
+              Donation
+            </h2>
+
+            <div className="mt-3 rounded-xl border border-line p-4 sm:p-6">
+              <h3 className="text-center text-[1.0625rem] font-bold leading-snug text-violet-dark">
+                Supporting the Temple and Preserving the Tradition
+              </h3>
+              <p className="mx-auto mt-3 max-w-[56ch] text-center text-sm leading-6 text-ink">
+                Your financial contribution &mdash; traditionally offered as &ldquo;incense oil support&rdquo;{' '}
+                <span className="cn">(香油/填油)</span> &mdash; directly sustains the daily rituals, upkeep of the temple
+                grounds, and our community programs.
+              </p>
+
+              <dl className="mt-5 grid gap-4 border-t border-line pt-5">
+                <div className={ROW}>
+                  <dt className={LABEL}>Temple Sustaining Offering</dt>
+                  <dd className={VALUE}>Helps maintain the shrine, deity offerings, and ritual spaces.</dd>
+                </div>
+                <div className={ROW}>
+                  <dt className={LABEL}>Festival &amp; Ritual Sponsorship</dt>
+                  <dd className={VALUE}>Supports upcoming celebrations, offerings, and ceremonial rites.</dd>
+                </div>
+              </dl>
+
+              <div className="mt-6 flex flex-col items-center gap-4 border-t border-line pt-6">
+                <a
+                  href="#paynow-qr"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet px-5 text-center text-sm font-bold text-white transition-colors hover:bg-violet-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-card sm:w-auto"
+                >
+                  Make an Offering / Contribute
+                </a>
+
+                <figure id="paynow-qr" className="scroll-mt-24 rounded-xl border border-line bg-white p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/paynow-qr.jpeg"
+                    alt={`PayNow QR code for ${ORG.name}`}
+                    width={220}
+                    height={220}
+                    className="mx-auto h-[220px] w-[220px] max-w-full"
+                  />
+                  <figcaption className="mt-2 text-center text-[12px] leading-5 text-muted">
+                    PayNow &middot; {ORG.name}
+                    <br />
+                    UEN {ORG.uen}
+                  </figcaption>
+                </figure>
+
+                <p className="max-w-[48ch] text-center text-sm italic leading-6 text-muted">
+                  With deep gratitude for your support in keeping the light of the tradition burning.
+                </p>
+              </div>
+            </div>
           </section>
 
           <Link href="/" className="mt-8 inline-flex min-h-11 items-center text-sm font-bold text-violet">
