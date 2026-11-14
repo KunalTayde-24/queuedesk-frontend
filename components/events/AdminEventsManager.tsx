@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { eventImageSrc } from '@/lib/events';
+import { eventImageSrc, eventRangeLabel, findOverlap } from '@/lib/events';
 import { addDaysToKey, formatShortDateKey, todayKey } from '@/lib/dates';
 import { TokenStatus } from '@/types/token';
 import { useAutoRefresh } from '@/lib/use-auto-refresh';
@@ -29,6 +29,8 @@ type ConfirmAction = { id: string; title: string; kind: 'delete' };
 
 /** Upcoming Singapore days an event covers (today or later), the same days publishing opens in the queue. */
 function upcomingEventDays(event: EventSummary): string[] {
+  // An event without a queue opens no days.
+  if (event.needsQueue === false) return [];
   const today = todayKey();
   const first = todayKey(new Date(event.startsAt));
   const last = todayKey(new Date(new Date(event.endsAt).getTime() - 1));
@@ -156,7 +158,7 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
         <div className="min-w-0">
           <h1 className="font-serif text-[1.5rem] font-bold leading-tight text-violet-dark sm:text-[1.875rem]">Events</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-            Post a celebration and publish it. Publishing shows it on the events page and opens its dates in the queue.
+            Post a celebration and publish it. Publishing shows it on the events page and, unless it is marked as having no queue, opens its dates in the queue. Two published events cannot overlap in time.
           </p>
         </div>
         <Link href="/admin/dashboard/events/new" className="inline-flex min-h-10 items-center justify-center rounded-md bg-[linear-gradient(180deg,#D9412E,#B8262B)] px-4 text-center text-[13px] font-bold leading-5 text-white shadow-[inset_0_0_0_1px_rgba(242,198,109,0.5),0_6px_14px_-8px_rgba(184,38,43,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 focus-visible:ring-offset-paper">
@@ -179,11 +181,23 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {items.map((event) => (
+        {items.map((event) => {
+          // A draft cannot be published while another published event runs at the same time.
+          const clash = event.status === 'DRAFT' ? findOverlap(event.startsAt, event.endsAt, items, event.id) : null;
+          return (
           <div key={event.id} className="grid min-w-0 gap-3">
             <EventCard event={event} imageSrc={eventImageSrc(event, 'admin')} showLifecycle />
-            {event.status === 'PUBLISHED' && (
+            {event.status === 'PUBLISHED' && event.needsQueue !== false && (
               <p className="px-1 text-sm font-semibold leading-5 text-ink">Queue open: {queueDaysLabel(event)}</p>
+            )}
+            {event.needsQueue === false && event.status !== 'CANCELLED' && (
+              <p className="px-1 text-sm font-semibold leading-5 text-muted">No queue for this event</p>
+            )}
+            {clash && (
+              <p role="alert" className="rounded-lg border border-coral/40 bg-coral-light px-3 py-2 text-[13px] leading-5 text-ink">
+                <strong className="text-coral-dark">Cannot publish:</strong> <strong>{clash.title}</strong> is already published on{' '}
+                {eventRangeLabel(clash.startsAt, clash.endsAt)} (Singapore time). Change this event&rsquo;s time, or unpublish that one first.
+              </p>
             )}
             <div className="flex flex-wrap gap-2">
               <Link href={`/admin/dashboard/events/${event.id}`} className={ACTION_LINK}>
@@ -194,7 +208,7 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
                   Unpublish
                 </Button>
               ) : (
-                <Button type="button" className="min-h-11" disabled={pendingId === event.id || event.status === 'CANCELLED'} onClick={() => void run(event.id, 'publish')}>
+                <Button type="button" className="min-h-11" disabled={pendingId === event.id || event.status === 'CANCELLED' || clash !== null} onClick={() => void run(event.id, 'publish')}>
                   Publish event
                 </Button>
               )}
@@ -203,7 +217,8 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
               </Button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Modal open={Boolean(confirm)} title="Delete this event?" onClose={() => setConfirm(null)}>

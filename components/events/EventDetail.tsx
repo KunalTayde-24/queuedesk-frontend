@@ -86,9 +86,13 @@ export function EventDetail({ event }: { event: EventSummary }) {
     return start < today ? today : start;
   })();
   const tokenHref = `/?date=${firstDay}#get-token`;
+  // Some events have no queue: no token button, and no "queue is open" message.
+  const hasQueue = event.needsQueue !== false;
   const statusCopy = ended
     ? 'This event has ended'
-    : 'The queue is open on the event day. Take a token to hold your place.';
+    : hasQueue
+      ? 'The queue is open on the event day. Take a token to hold your place.'
+      : 'This event does not use a queue token.';
   const hasVenue = event.venue.trim().length > 1;
 
   return (
@@ -171,7 +175,7 @@ export function EventDetail({ event }: { event: EventSummary }) {
             ]}
           />
           <p className="mt-5 text-sm font-semibold leading-6 text-ink">{statusCopy}</p>
-          {!ended && (
+          {!ended && hasQueue && (
             <Link href={tokenHref} className={clsx(PRIMARY_LINK, 'mt-3 hidden lg:inline-flex')}>
               Take a queue token
             </Link>
@@ -201,16 +205,18 @@ export function EventDetail({ event }: { event: EventSummary }) {
         </Link>
       </aside>
 
+      {(hasQueue || ended) && (
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-[1080px] flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
           <p className="min-w-0 flex-1 break-words text-xs font-semibold leading-5 text-ink">{statusCopy}</p>
-          {!ended && (
+          {!ended && hasQueue && (
             <Link href={tokenHref} className={clsx(PRIMARY_LINK, 'w-full shrink-0 min-[420px]:w-auto')}>
               Take a queue token
             </Link>
           )}
         </div>
       </div>
+      )}
 
     </article>
   );

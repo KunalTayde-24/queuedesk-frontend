@@ -9,6 +9,7 @@ export interface EventSummary {
   imageUrl: string | null;
   startsAt: string;
   endsAt: string;
+  needsQueue: boolean;
   status: EventLifecycle;
   createdAt: string;
   updatedAt: string;
@@ -20,4 +21,5 @@ export interface EventFormValues {
   venue: string;
   startsAt: string;
   endsAt: string;
+  needsQueue: boolean;
 }

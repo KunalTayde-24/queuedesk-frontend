@@ -83,7 +83,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
   // Full international number, e.g. "+6591234567"; this is what is verified and stored.
   const mobile = `${country}${national}`;
   const [agreed, setAgreed] = useState(false);
-  const draftLoaded = useRef(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const [date, setDate] = useState(() =>
     defaultDate && openDates.dates.includes(defaultDate)
       ? defaultDate
@@ -99,6 +99,8 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
   const [resendLeft, setResendLeft] = useState(0);
   // A verified phone number stays good for a few minutes, so a failed token request can be retried.
   const [verified, setVerified] = useState<{ mobile: string; token: string } | null>(null);
+  const verifiedAt = useRef(Date.now());
+  const [otpSentAt, setOtpSentAt] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -113,28 +115,66 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
         country?: string;
         national?: string;
         date?: string;
+        step?: string;
+        otp?: { info: SendOtpResponse; sentAt: number } | null;
+        verified?: { mobile: string; token: string; at: number } | null;
       } | null;
       if (saved) {
         if (typeof saved.name === 'string') setName(saved.name);
         if (typeof saved.country === 'string') setCountry(saved.country);
         if (typeof saved.national === 'string') setNational(saved.national);
         if (typeof saved.date === 'string' && dateSet.has(saved.date)) setDate(saved.date);
+
+        // Came back to the code step: put the visitor back where they were, as long as the
+        // code they were sent is still valid, so they can type it without asking for a new one.
+        const now = Date.now();
+        const otp = saved.otp;
+        if (
+          saved.step === 'otp' &&
+          otp &&
+          typeof otp.sentAt === 'number' &&
+          now - otp.sentAt < otp.info.expiresInSeconds * 1000
+        ) {
+          setOtpInfo(otp.info);
+          setOtpSentAt(otp.sentAt);
+          setResendLeft(Math.max(0, Math.ceil((otp.sentAt + otp.info.resendAfterSeconds * 1000 - now) / 1000)));
+          setAgreed(true); // they ticked the Terms to get this far, in this same tab
+          setStep('otp');
+        }
+        // A number verified in the last few minutes can still be used to get the token.
+        if (saved.verified && now - saved.verified.at < 9 * 60_000) {
+          setVerified({ mobile: saved.verified.mobile, token: saved.verified.token });
+        }
       }
     } catch {
       // Storage can be blocked; the form just starts empty.
     }
-    draftLoaded.current = true;
+    // Saving only starts after the restore has been applied (next render). Otherwise the first
+    // save would overwrite the stored draft with the empty starting values, and a second restore
+    // (React dev mode runs effects twice) would read those back, e.g. the country reverting to +65.
+    setDraftLoaded(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!draftLoaded.current) return;
+    if (!draftLoaded) return;
     try {
-      sessionStorage.setItem('qd-token-draft', JSON.stringify({ name, country, national, date }));
+      sessionStorage.setItem(
+        'qd-token-draft',
+        JSON.stringify({
+          name,
+          country,
+          national,
+          date,
+          step,
+          otp: step === 'otp' && otpInfo && otpSentAt ? { info: otpInfo, sentAt: otpSentAt } : null,
+          verified: verified ? { ...verified, at: verifiedAt.current } : null,
+        }),
+      );
     } catch {
       // ignore
     }
-  }, [name, country, national, date]);
+  }, [draftLoaded, name, country, national, date, step, otpInfo, otpSentAt, verified]);
 
   useEffect(() => {
     if (resendLeft <= 0) return;
@@ -149,6 +189,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     setAgreed(false);
     setCode('');
     setOtpInfo(null);
+    setOtpSentAt(null);
     setVerified(null);
     setApiError(null);
     setErrors({});
@@ -172,6 +213,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     try {
       const info = await apiClient.sendOtp(mobile);
       setOtpInfo(info);
+      setOtpSentAt(Date.now());
       setResendLeft(info.resendAfterSeconds);
       setCode('');
       setStep('otp');
@@ -219,6 +261,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
       if (!proof) {
         const result = await apiClient.verifyOtp(mobile, code);
         proof = result.verificationToken;
+        verifiedAt.current = Date.now();
         setVerified({ mobile, token: proof });
       }
       await createWithVerification(proof);

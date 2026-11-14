@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { eventImageSrc, eventToFormData, validateEventImage } from '@/lib/events';
+import { eventImageSrc, eventRangeLabel, eventToFormData, findOverlap, validateEventImage } from '@/lib/events';
 import { isoToSgtInput, sgtLocalToIso } from '@/lib/event-time';
 import { eventDaysFromLocal, formatShortDateKey, todayKey } from '@/lib/dates';
 import { TokenStatus } from '@/types/token';
@@ -22,6 +22,7 @@ const EMPTY: EventFormValues = {
   venue: '',
   startsAt: '',
   endsAt: '',
+  needsQueue: true,
 };
 
 // Form field -> input id, in the order they appear on the page (used to jump to the first error).
@@ -41,6 +42,7 @@ function fromEvent(event: EventSummary): EventFormValues {
     venue: event.venue,
     startsAt: isoToSgtInput(event.startsAt),
     endsAt: isoToSgtInput(event.endsAt),
+    needsQueue: event.needsQueue ?? true,
   };
 }
 
@@ -52,7 +54,7 @@ function safeIso(value: string) {
   }
 }
 
-export function EventForm({ event }: { event?: EventSummary }) {
+export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; otherEvents?: EventSummary[] }) {
   const router = useRouter();
   const { show } = useToast();
   const [values, setValues] = useState<EventFormValues>(event ? fromEvent(event) : EMPTY);
@@ -66,6 +68,16 @@ export function EventForm({ event }: { event?: EventSummary }) {
   const [published, setPublished] = useState(false);
   const wasPublished = event?.status === 'PUBLISHED';
   const alreadyPublished = published || wasPublished;
+  // Another published event already runs at this time: publishing (or moving a live event here) is not offered.
+  const clash = useMemo(
+    () => findOverlap(safeIso(values.startsAt), safeIso(values.endsAt), otherEvents, event?.id),
+    [values.startsAt, values.endsAt, otherEvents, event?.id],
+  );
+  const datesChanged = Boolean(
+    event && (values.startsAt !== isoToSgtInput(event.startsAt) || values.endsAt !== isoToSgtInput(event.endsAt)),
+  );
+  const blockPublish = clash !== null && !wasPublished;
+  const blockSave = clash !== null && wasPublished && datesChanged;
   const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,10 +97,14 @@ export function EventForm({ event }: { event?: EventSummary }) {
   const [moveTarget, setMoveTarget] = useState('');
   const today = todayKey();
   const oldDays = useMemo(
-    () => (event && wasPublished ? eventDaysFromLocal(fromEvent(event).startsAt, fromEvent(event).endsAt) : []),
+    () => (event && wasPublished && event.needsQueue !== false ? eventDaysFromLocal(fromEvent(event).startsAt, fromEvent(event).endsAt) : []),
     [event, wasPublished],
   );
-  const newDays = useMemo(() => eventDaysFromLocal(values.startsAt, values.endsAt), [values.startsAt, values.endsAt]);
+  // Without a queue there are no queue days to move or close.
+  const newDays = useMemo(
+    () => (values.needsQueue ? eventDaysFromLocal(values.startsAt, values.endsAt) : []),
+    [values.needsQueue, values.startsAt, values.endsAt],
+  );
   const droppedDays = useMemo(
     () => (wasPublished ? oldDays.filter((day) => day >= today && !newDays.includes(day)) : []),
     [wasPublished, oldDays, newDays, today],
@@ -142,6 +158,7 @@ export function EventForm({ event }: { event?: EventSummary }) {
       imageUrl: null,
       startsAt: safeIso(values.startsAt),
       endsAt: safeIso(values.endsAt),
+      needsQueue: values.needsQueue,
       status: event?.status ?? 'DRAFT',
       createdAt: event?.createdAt ?? new Date().toISOString(),
       updatedAt: event?.updatedAt ?? new Date().toISOString(),
@@ -167,6 +184,8 @@ export function EventForm({ event }: { event?: EventSummary }) {
       if (target instanceof HTMLElement && firstKey) target.focus({ preventScroll: true });
       return;
     }
+
+    if ((publish && clash) || (wasPublished && datesChanged && clash)) return;
 
     setPending(publish ? 'publish' : 'save');
     try {
@@ -198,7 +217,12 @@ export function EventForm({ event }: { event?: EventSummary }) {
       try {
         await apiClient.publishEvent(saved.id);
       } catch (err) {
-        show(err instanceof Error ? err.message : 'The event was saved, but it could not be published', 'error');
+        show(
+          err instanceof Error
+            ? `The event was saved, but it could not be published: ${err.message}`
+            : 'The event was saved, but it could not be published',
+          'error',
+        );
         router.push(`/admin/dashboard/events/${saved.id}`);
         router.refresh();
         return;
@@ -236,7 +260,7 @@ export function EventForm({ event }: { event?: EventSummary }) {
             {event ? 'Edit event' : 'New event'}
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Drafts stay hidden. Publishing the event shows it to guests and opens its dates in the queue, so they can take a token for those days.
+            Drafts stay hidden. Publishing the event shows it to guests{values.needsQueue ? ' and opens its dates in the queue, so they can take a token for those days' : ', but it opens no queue, so there are no tokens for it'}. Two published events cannot overlap in time.
           </p>
         </div>
 
@@ -250,7 +274,7 @@ export function EventForm({ event }: { event?: EventSummary }) {
         <div className="grid gap-4 rounded-card border border-line bg-card p-4">
           <div>
             <h2 className="text-sm font-bold leading-5 text-ink">Schedule</h2>
-            <p className="mt-1 text-[12.5px] leading-5 text-muted">All times are in Singapore Time (SGT). The queue opens on every day from the start to the end of the event.</p>
+            <p className="mt-1 text-[12.5px] leading-5 text-muted">All times are in Singapore Time (SGT).{values.needsQueue ? ' The queue opens on every day from the start to the end of the event.' : ''}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <DateTimePicker id="event-starts" label="Event starts *" value={values.startsAt} onChange={(v) => update('startsAt', v)} error={visible.startsAt}  />
@@ -258,6 +282,22 @@ export function EventForm({ event }: { event?: EventSummary }) {
           </div>
           {visible.schedule && <p className="text-[12px] font-semibold leading-5 text-coral-dark">{visible.schedule}</p>}
         </div>
+
+        <label className="flex items-start gap-3 rounded-card border border-line bg-card p-4">
+          <input
+            id="event-needs-queue"
+            type="checkbox"
+            checked={values.needsQueue}
+            onChange={(item) => update('needsQueue', item.target.checked)}
+            className="mt-0.5 h-5 w-5 flex-shrink-0 accent-[#B8262B]"
+          />
+          <span className="grid gap-0.5">
+            <span className="text-sm font-bold leading-5 text-ink">This event needs a queue (visitors can take a token)</span>
+            <span className="text-[12.5px] leading-5 text-muted">
+              Untick for events with no queue. They are still shown on the website, but their dates are not opened for tokens.
+            </span>
+          </span>
+        </label>
 
         <div className="grid gap-2">
           <span id="event-image-label" className="text-[11.5px] font-bold leading-4 tracking-wide text-ink/75">
@@ -356,6 +396,16 @@ export function EventForm({ event }: { event?: EventSummary }) {
         )}
 
         <div className="grid gap-2">
+          {clash && (blockPublish || blockSave) && (
+            <div role="alert" className="rounded-lg border border-coral/40 bg-coral-light p-3 text-[13px] leading-5 text-ink">
+              <p className="font-bold text-coral-dark">This time is already taken</p>
+              <p className="mt-1">
+                <strong>{clash.title}</strong> is already published on {eventRangeLabel(clash.startsAt, clash.endsAt)} (Singapore time).
+                Two published events cannot overlap. {blockPublish ? 'Change this event\u2019s date or time to publish it' : 'Change the date or time back, or pick a free slot'}, or unpublish the other event first.
+              </p>
+              {blockPublish && <p className="mt-1 text-muted">You can still save this event as a draft.</p>}
+            </div>
+          )}
           {wasPublished && (
             <p className="text-[12.5px] leading-5 text-muted">
               This event is live. Save changes to update it, and its queue days follow the new dates.
@@ -366,12 +416,12 @@ export function EventForm({ event }: { event?: EventSummary }) {
               type="submit"
               variant={wasPublished ? 'primary' : 'ghost'}
               className="min-h-11 w-full sm:w-auto"
-              disabled={pending !== null || published}
+              disabled={pending !== null || published || blockSave}
             >
               {pending === 'save' ? 'Saving…' : event ? 'Save changes' : 'Save draft'}
             </Button>
             {!wasPublished && (
-              <Button type="button" className="min-h-11 w-full sm:w-auto" disabled={pending !== null || alreadyPublished || event?.status === 'CANCELLED'} onClick={() => void persist(true)}>
+              <Button type="button" className="min-h-11 w-full sm:w-auto" disabled={pending !== null || alreadyPublished || event?.status === 'CANCELLED' || blockPublish} onClick={() => void persist(true)}>
                 {pending === 'publish' ? 'Publishing…' : alreadyPublished ? 'Published' : 'Publish event'}
               </Button>
             )}
