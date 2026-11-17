@@ -46,17 +46,25 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ mobile, code }),
     }),
-  fetchAdminQueue: (date: string) =>
-    request<Token[]>(`/api/admin/queue?date=${encodeURIComponent(date)}`, { method: 'GET' }),
+  fetchAdminQueue: (date: string, eventId?: string) =>
+    request<Token[]>(
+      `/api/admin/queue?date=${encodeURIComponent(date)}${eventId ? `&eventId=${encodeURIComponent(eventId)}` : ''}`,
+      { method: 'GET' },
+    ),
   listQueueDays: () => request<AdminQueueDays>('/api/admin/queue/days', { method: 'GET' }),
-  openQueueDay: (date: string) =>
-    request<{ date: string; open: true }>(`/api/admin/queue/days/${date}`, { method: 'PUT' }),
-  closeQueueDay: (date: string) =>
-    request<{ date: string; open: false }>(`/api/admin/queue/days/${date}`, { method: 'DELETE' }),
-  moveTokens: (from: string, to: string) =>
+  openQueueDay: (eventId: string, date: string) =>
+    request<{ date: string; open: true }>(`/api/admin/queue/days/${date}?eventId=${encodeURIComponent(eventId)}`, {
+      method: 'PUT',
+    }),
+  closeQueueDay: (eventId: string, date: string) =>
+    request<{ date: string; open: false }>(`/api/admin/queue/days/${date}?eventId=${encodeURIComponent(eventId)}`, {
+      method: 'DELETE',
+    }),
+  /** Moves an event's waiting tokens to another open queue: another date, or (toEventId) another event. */
+  moveTokens: (move: { eventId: string; from: string; to: string; toEventId?: string }) =>
     request<{ moved: number; skipped: number }>('/api/admin/queue/move', {
       method: 'POST',
-      body: JSON.stringify({ from, to }),
+      body: JSON.stringify(move),
     }),
   createWalkIn: (data: WalkInRequest) =>
     request<Token>('/api/admin/queue/tokens', { method: 'POST', body: JSON.stringify(data) }),

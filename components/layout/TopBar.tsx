@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { useMyToken } from '@/lib/my-token';
+import { useMyTokens } from '@/lib/my-token';
 import { ThemeToggle } from './ThemeToggle';
 
 const NAV = [
@@ -71,7 +71,8 @@ export function TopBar() {
   const router = useRouter();
   const [today, setToday] = useState('');
   const [signedIn, setSignedIn] = useState(false);
-  const myToken = useMyToken();
+  const myTokens = useMyTokens();
+  const myToken = myTokens[0];
 
   // Re-check on every navigation, so the tab appears right after sign-in and
   // disappears right after log-out.
@@ -188,7 +189,7 @@ export function TopBar() {
           {myToken && !onAdminPage && (
             <Link
               href="/#my-ticket"
-              aria-label={`My token, number ${myToken.tokenNumber}`}
+              aria-label={myTokens.length > 1 ? `My tokens, ${myTokens.length} saved` : `My token, number ${myToken.tokenNumber}`}
               className={clsx(
                 "flex h-9 items-center gap-1.5 rounded-lg bg-amber-light px-2.5 text-[12px] font-extrabold text-amber-dark transition-colors hover:bg-amber/30",
                 FOCUS_RING,
@@ -198,8 +199,8 @@ export function TopBar() {
                 <path d="M3 8a2 2 0 0 0 0 4v0a2 2 0 0 1 0 4v2h18v-2a2 2 0 0 1 0-4 2 2 0 0 0 0-4V6H3v2Z" />
                 <path d="M13 6v12" strokeDasharray="2 2" />
               </svg>
-              <span className="hidden min-[430px]:inline">My token</span>
-              <span className="font-serif text-[13px]">#{myToken.tokenNumber}</span>
+              <span className="hidden min-[430px]:inline">{myTokens.length > 1 ? 'My tokens' : 'My token'}</span>
+              <span className="font-serif text-[13px]">{myTokens.length > 1 ? myTokens.length : `#${myToken.tokenNumber}`}</span>
             </Link>
           )}
           <ThemeToggle />

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TopBar } from '@/components/layout/TopBar';
 import { Lantern, LanternDefs } from '@/components/temple/Lantern';
 import { useRealtimeTokens } from '@/hooks/useRealtimeTokens';
-import { countByStatus, sortByTokenNumberAsc } from '@/lib/queue-utils';
+import { busiestWaitingEvent, countByStatus, latestCalled, sortByTokenNumberAsc } from '@/lib/queue-utils';
 import { Token, TokenStatus } from '@/types/token';
 import { NowServingPanel } from './NowServingPanel';
 import { UpNextList } from './UpNextList';
@@ -42,8 +42,12 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
   const tokens = useRealtimeTokens(initialTokens);
   const boardRef = useRef<HTMLElement>(null);
 
-  const current = sortByTokenNumberAsc(tokens.filter((t) => t.status === TokenStatus.CALLED)).at(-1);
-  const waitingList = sortByTokenNumberAsc(tokens.filter((t) => t.status === TokenStatus.WAITING));
+  const current = latestCalled(tokens);
+  // The board follows one event's queue at a time: the one being served, else the busiest one.
+  const activeEventId = current ? (current.eventId ?? null) : busiestWaitingEvent(tokens);
+  const inActiveQueue = (t: Token) => (t.eventId ?? null) === activeEventId;
+  const activeTitle = (current ?? tokens.find(inActiveQueue))?.eventTitle ?? undefined;
+  const waitingList = sortByTokenNumberAsc(tokens.filter((t) => t.status === TokenStatus.WAITING && inActiveQueue(t)));
   const upNext = waitingList.slice(0, UP_NEXT_COUNT);
   const { waiting } = countByStatus(tokens);
 
@@ -92,7 +96,7 @@ export function DisplayClient({ initialTokens }: { initialTokens: Token[] }) {
           </div>
 
           <NowServingPanel current={current} />
-          <UpNextList tokens={upNext} />
+          <UpNextList tokens={upNext} title={activeTitle} />
           <UpcomingQueues />
 
           <div className="relative z-10 mt-4 flex flex-wrap justify-between gap-x-4 gap-y-1 px-1.5 text-[12px] opacity-80">

@@ -70,3 +70,11 @@ export function findOverlap(
     ) ?? null
   );
 }
+
+/** Upcoming and ongoing events first (soonest start first), then past events (most recent first). */
+export function sortEventsByDate<T extends Pick<EventSummary, 'startsAt' | 'endsAt'>>(events: T[], now = Date.now()): T[] {
+  const start = (e: T) => Date.parse(e.startsAt);
+  const upcoming = events.filter((e) => Date.parse(e.endsAt) >= now).sort((a, b) => start(a) - start(b));
+  const past = events.filter((e) => Date.parse(e.endsAt) < now).sort((a, b) => start(b) - start(a));
+  return [...upcoming, ...past];
+}

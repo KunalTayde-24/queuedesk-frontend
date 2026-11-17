@@ -1,18 +1,26 @@
-/** Dates visitors may pick, from GET /tokens/dates. All values are "YYYY-MM-DD". */
-export interface OpenDates {
-  today: string;
-  dates: string[];
-  /** Published events attached to those dates. */
-  events: { date: string; id: string; title: string }[];
+/** One event's queue that is open for visitors on one date ("YYYY-MM-DD"). */
+export interface OpenQueue {
+  eventId: string;
+  title: string;
+  date: string;
+  startsAt: string;
+  endsAt: string;
 }
 
-/** One day on the admin calendar. */
+/** Queues visitors may pick from, from GET /tokens/dates. */
+export interface OpenDates {
+  today: string;
+  queues: OpenQueue[];
+}
+
+/** One event's queue on one date, on the admin calendar. */
 export interface QueueDaySummary {
   date: string;
+  /** Null for days from before queues belonged to events (history). */
+  eventId: string | null;
+  eventTitle: string | null;
   open: boolean;
   tokenCount: number;
-  /** Published events that opened this date. */
-  events: { id: string; title: string }[];
 }
 
 export interface AdminQueueDays {

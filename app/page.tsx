@@ -20,15 +20,15 @@ async function fetchInitialTokens(): Promise<Token[]> {
 async function fetchOpenDates(): Promise<OpenDates> {
   try {
     const res = await fetch(`${process.env.API_URL}/tokens/dates`, { cache: 'no-store' });
-    if (!res.ok) return { today: '', dates: [], events: [] };
+    if (!res.ok) return { today: '', queues: [] };
     const data = (await res.json()) as Partial<OpenDates>;
-    return { today: data.today ?? '', dates: data.dates ?? [], events: data.events ?? [] };
+    return { today: data.today ?? '', queues: data.queues ?? [] };
   } catch {
-    return { today: '', dates: [], events: [] };
+    return { today: '', queues: [] };
   }
 }
 
-export default async function HomePage({ searchParams }: { searchParams?: { date?: string } }) {
+export default async function HomePage({ searchParams }: { searchParams?: { date?: string; event?: string } }) {
   const [initialTokens, openDates, { events }] = await Promise.all([
     fetchInitialTokens(),
     fetchOpenDates(),
@@ -49,6 +49,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { date
         upcomingEvents={upcoming}
         openDates={openDates}
         defaultDate={typeof searchParams?.date === 'string' ? searchParams.date : undefined}
+        defaultEventId={typeof searchParams?.event === 'string' ? searchParams.event : undefined}
       />
     </main>
   );

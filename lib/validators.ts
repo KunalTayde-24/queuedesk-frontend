@@ -62,8 +62,8 @@ export function validateEventForm(
 ): EventFormErrors {
   const errors: EventFormErrors = {};
 
-  if (values.title.trim().length < 3) {
-    errors.title = 'Title must be at least 3 characters';
+  if (values.title.trim().length < 1) {
+    errors.title = 'Enter a title';
   }
 
   const now = options.now ?? nowLocalIst();

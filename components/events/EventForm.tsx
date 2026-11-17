@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import { Modal } from '@/components/ui/Modal';
+import { useUnsavedChangesGuard } from '@/lib/use-unsaved-changes';
 import { eventImageSrc, eventRangeLabel, eventToFormData, findOverlap, validateEventImage } from '@/lib/events';
 import { isoToSgtInput, sgtLocalToIso } from '@/lib/event-time';
 import { eventDaysFromLocal, formatShortDateKey, todayKey } from '@/lib/dates';
@@ -78,6 +80,15 @@ export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; o
   );
   const blockPublish = clash !== null && !wasPublished;
   const blockSave = clash !== null && wasPublished && datesChanged;
+
+  // Unsaved changes: anything different from what was loaded (or from a blank new event).
+  const initialValues = useMemo(() => (event ? fromEvent(event) : EMPTY), [event]);
+  const dirty =
+    pending === null &&
+    (image !== null ||
+      removeImage ||
+      (Object.keys(initialValues) as (keyof EventFormValues)[]).some((key) => values[key] !== initialValues[key]));
+  const guard = useUnsavedChangesGuard(dirty);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -121,7 +132,7 @@ export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; o
     void Promise.all(
       droppedKey.split(',').map(async (date) => {
         try {
-          const queue = await apiClient.fetchAdminQueue(date);
+          const queue = await apiClient.fetchAdminQueue(date, event?.id);
           return {
             date,
             waiting: queue.filter((t) => t.status === TokenStatus.WAITING).length,
@@ -137,6 +148,7 @@ export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; o
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [droppedKey]);
 
   // Keep the chosen target valid as the dates change.
@@ -192,12 +204,13 @@ export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; o
       const saved = await apiClient.saveEvent(event?.id ?? null, eventToFormData(values, image, removeImage));
       if (!publish) {
         let message = 'Event saved';
-        if (moveChoice === 'move' && moveTarget && booked.some((row) => row.waiting > 0)) {
+        if (moveChoice === 'move' && moveTarget && event && booked.some((row) => row.waiting > 0)) {
           try {
             let moved = 0;
             let skipped = 0;
             for (const row of booked.filter((r) => r.waiting > 0)) {
-              const result = await apiClient.moveTokens(row.date, moveTarget);
+              // The event's own queue moves to its new dates (the save above already opened them).
+              const result = await apiClient.moveTokens({ eventId: event.id, from: row.date, to: moveTarget });
               moved += result.moved;
               skipped += result.skipped;
             }
@@ -433,6 +446,30 @@ export function EventForm({ event, otherEvents = [] }: { event?: EventSummary; o
         <p className="mb-2 text-[11.5px] font-bold uppercase tracking-wide text-muted">Public preview</p>
         <EventCard event={preview} imageSrc={previewImage} showLifecycle />
       </aside>
+
+      <Modal open={guard.pending !== null} title="Leave without saving?" onClose={guard.stay}>
+        <div className="flex flex-col gap-5">
+          <p className="text-[13px] leading-relaxed text-muted">
+            You have unsaved changes to this event. If you leave now, they will be lost.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={guard.stay}
+              className="flex-1 rounded-md border-[1.5px] border-line bg-card py-2.5 text-xs font-bold text-ink transition-colors hover:bg-violet-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
+            >
+              Keep editing
+            </button>
+            <button
+              type="button"
+              onClick={guard.leave}
+              className="flex-1 rounded-md bg-[#B8262B] py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#8A1C20] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8262B] focus-visible:ring-offset-2"
+            >
+              Leave without saving
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export function NowServingPanel({ current }: { current: Token | undefined }) {
         {current ? current.tokenNumber : '—'}
       </p>
       <p className="max-w-full truncate px-2 text-[20px] font-extrabold sm:text-[24px]">
-        {current ? current.name : 'The counter is free'}
+        {current ? (current.eventTitle ?? 'Now calling this number') : 'The counter is free'}
       </p>
       <p className="text-[13px] opacity-75">
         {current ? 'Please go to the counter' : 'Please wait for your number to be called'}

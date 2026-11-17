@@ -85,7 +85,7 @@ export function EventDetail({ event }: { event: EventSummary }) {
     const today = todayKey();
     return start < today ? today : start;
   })();
-  const tokenHref = `/?date=${firstDay}#get-token`;
+  const tokenHref = `/?event=${event.id}&date=${firstDay}#get-token`;
   // Some events have no queue: no token button, and no "queue is open" message.
   const hasQueue = event.needsQueue !== false;
   const statusCopy = ended

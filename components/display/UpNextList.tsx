@@ -1,10 +1,12 @@
 import clsx from 'clsx';
 import { Token } from '@/types/token';
 
-export function UpNextList({ tokens }: { tokens: Token[] }) {
+export function UpNextList({ tokens, title }: { tokens: Token[]; title?: string }) {
   return (
     <div className="relative z-10 rounded-[18px] border border-[#F2C66D]/30 bg-black/20 p-3.5 sm:p-4">
-      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#F2C66D]">Up next</p>
+      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#F2C66D]">
+        Up next{title ? ` · ${title}` : ''}
+      </p>
       {tokens.length === 0 ? (
         <p className="text-[13px] opacity-70">No one is waiting</p>
       ) : (
@@ -18,7 +20,6 @@ export function UpNextList({ tokens }: { tokens: Token[] }) {
               )}
             >
               <b className="token-number block text-[28px] font-black leading-tight text-[#FFE3A1]">{t.tokenNumber}</b>
-              <span className="block truncate text-[12px] opacity-85">{t.name}</span>
             </li>
           ))}
         </ul>

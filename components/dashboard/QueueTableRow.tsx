@@ -11,12 +11,14 @@ import { Token, TokenStatus, QueueActionResponse } from '@/types/token';
 
 interface QueueTableRowProps {
   token: Token;
+  /** Several events' queues are listed together, so say which event this token is in. */
+  showEvent?: boolean;
   onDeleteRequest: (token: Token) => void;
 }
 
 const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_300px]';
 
-export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
+export function QueueTableRow({ token, showEvent = false, onDeleteRequest }: QueueTableRowProps) {
   const { show } = useToast();
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
@@ -45,7 +47,14 @@ export function QueueTableRow({ token, onDeleteRequest }: QueueTableRowProps) {
       } ${token.status === TokenStatus.CALLED ? 'bg-amber-light/60' : ''}`}
     >
       <span className="token-number text-[18px] font-black text-violet">{token.tokenNumber}</span>
-      <span className="min-w-0 truncate font-bold">{token.name}</span>
+      <span className="min-w-0 truncate font-bold">
+        {token.name}
+        {showEvent && (
+          <span className="block truncate text-[11.5px] font-semibold text-amber-dark">
+            {token.eventTitle ?? 'General (no event)'}
+          </span>
+        )}
+      </span>
       <span className="hidden whitespace-nowrap text-[12.5px] font-medium text-muted sm:block">
         {displayMobile(token.mobile)}
       </span>

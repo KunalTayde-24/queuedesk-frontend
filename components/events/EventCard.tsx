@@ -32,8 +32,13 @@ export function EventCard({ event, imageSrc, href, featured = false, showLifecyc
         </div>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-5">
-        <div className={clsx('flex flex-wrap items-center gap-2', !showLifecycle && 'hidden')}>
+        <div className={clsx('flex flex-wrap items-center gap-2', !showLifecycle && event.needsQueue !== false && 'hidden')}>
           {showLifecycle && <LifecyclePill status={event.status} />}
+          {event.needsQueue === false && (
+            <span className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-xs font-semibold text-muted">
+              No queue needed
+            </span>
+          )}
         </div>
         <div className="min-w-0">
           <h2 className={clsx('break-words font-serif leading-tight text-violet-dark', featured ? 'text-[1.375rem] font-bold sm:text-[1.625rem]' : 'text-[1.0625rem] font-bold')}>

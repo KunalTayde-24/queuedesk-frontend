@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { formatShortDateKey, relativeDayLabel } from '@/lib/dates';
-import { sortByTokenNumberAsc } from '@/lib/queue-utils';
+import { latestCalled, sortByTokenNumberAsc } from '@/lib/queue-utils';
 import { OpenDates } from '@/types/queue';
 import { Token, TokenStatus } from '@/types/token';
 
@@ -41,21 +41,28 @@ function useUpcoming(): { today: string; days: UpcomingDay[]; titles: Map<string
         if (!res.ok || cancelled) return;
         const open = (await res.json()) as Partial<OpenDates>;
         const today = open.today ?? '';
-        const dates = (open.dates ?? []).filter((d) => d > today).slice(0, MAX_DAYS);
-        const events = open.events ?? [];
-        const titles = new Map(events.map((e) => [e.id, e.title] as const));
-        const days = await Promise.all(
+        const upcoming = (open.queues ?? []).filter((q) => q.date > today);
+        const dates = [...new Set(upcoming.map((q) => q.date))].slice(0, MAX_DAYS);
+        const titles = new Map(upcoming.map((q) => [q.eventId, q.title] as const));
+        const tokensByDate = new Map<string, Token[]>();
+        await Promise.all(
           dates.map(async (date) => {
-            let tokens: Token[] = [];
             try {
               const q = await fetch(`/api/tokens/by-date?date=${encodeURIComponent(date)}`, { cache: 'no-store' });
-              if (q.ok) tokens = (await q.json()) as Token[];
+              if (q.ok) tokensByDate.set(date, (await q.json()) as Token[]);
             } catch {
               // Keep the day listed even if its queue could not be read this time.
             }
-            return { date, eventIds: events.filter((e) => e.date === date).map((e) => e.id), tokens };
           }),
         );
+        // One entry per event and date: each event has its own queue and numbering.
+        const days: UpcomingDay[] = upcoming
+          .filter((q) => dates.includes(q.date))
+          .map((q) => ({
+            date: q.date,
+            eventIds: [q.eventId],
+            tokens: (tokensByDate.get(q.date) ?? []).filter((t) => t.eventId === q.eventId),
+          }));
         if (!cancelled) setState({ today, days, titles, loaded: true });
       } catch {
         // Ignore transient network errors; the next poll will catch up.
@@ -124,7 +131,7 @@ export function UpcomingQueues() {
               <ul className={`mt-2 grid list-none gap-2 p-0 ${groups.length === 1 ? 'md:grid-cols-2 lg:grid-cols-3' : ''}`}>
                 {group.days.map((day) => {
                   const sorted = sortByTokenNumberAsc(day.tokens);
-                  const called = sorted.filter((t) => t.status === TokenStatus.CALLED).at(-1);
+                  const called = latestCalled(sorted);
                   const waiting = sorted.filter((t) => t.status === TokenStatus.WAITING);
                   const done = sorted.filter((t) => t.status === TokenStatus.DONE);
                   const relative = relativeDayLabel(day.date, today);
@@ -143,7 +150,7 @@ export function UpcomingQueues() {
                       </div>
                       {called && (
                         <p className="mt-1.5 rounded-[9px] bg-[#F2C66D]/25 px-2 py-1 text-[12px] font-bold text-[#FFE3A1]">
-                          Now serving #{called.tokenNumber} · {called.name}
+                          Now serving #{called.tokenNumber}
                         </p>
                       )}
                       {waiting.length === 0 ? (
@@ -155,7 +162,6 @@ export function UpcomingQueues() {
                           {waiting.slice(0, SHOW_WAITING).map((t) => (
                             <li key={t.id} className="min-w-0 rounded-[9px] bg-[#F2C66D]/15 px-2 py-1 text-center">
                               <b className="token-number text-[15px] font-black text-[#FFE3A1]">{t.tokenNumber}</b>
-                              <span className="block max-w-[5rem] truncate text-[10px] opacity-85">{t.name}</span>
                             </li>
                           ))}
                           {waiting.length > SHOW_WAITING && (

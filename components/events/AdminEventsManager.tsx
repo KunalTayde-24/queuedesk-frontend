@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { eventImageSrc, eventRangeLabel, findOverlap } from '@/lib/events';
+import { eventImageSrc, eventRangeLabel, findOverlap, sortEventsByDate } from '@/lib/events';
 import { addDaysToKey, formatShortDateKey, todayKey } from '@/lib/dates';
 import { TokenStatus } from '@/types/token';
 import { useAutoRefresh } from '@/lib/use-auto-refresh';
@@ -44,8 +44,10 @@ function upcomingEventDays(event: EventSummary): string[] {
 interface UnpublishPlan {
   event: EventSummary;
   booked: { date: string; waiting: number; total: number }[];
-  targets: string[];
+  /** Other open queues the waiting tokens can be moved to. */
+  targets: { key: string; eventId: string; date: string; label: string }[];
   choice: 'leave' | 'move';
+  /** Key of the chosen target. */
   target: string;
 }
 
@@ -91,13 +93,11 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
   async function startUnpublish(event: EventSummary) {
     setPendingId(event.id);
     try {
-      const covered = new Set(
-        items.filter((e) => e.status === 'PUBLISHED' && e.id !== event.id).flatMap((e) => upcomingEventDays(e)),
-      );
-      const dropped = upcomingEventDays(event).filter((day) => !covered.has(day));
+      // Queues belong to their event, so unpublishing closes all of this event's own upcoming days.
+      const dropped = upcomingEventDays(event);
       const rows = await Promise.all(
         dropped.map(async (date) => {
-          const queue = await apiClient.fetchAdminQueue(date).catch(() => []);
+          const queue = await apiClient.fetchAdminQueue(date, event.id).catch(() => []);
           return {
             date,
             waiting: queue.filter((t) => t.status === TokenStatus.WAITING).length,
@@ -112,9 +112,14 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
       }
       const week = await apiClient.listQueueDays().catch(() => null);
       const targets = (week?.days ?? [])
-        .filter((d) => d.open && d.date >= todayKey() && !dropped.includes(d.date))
-        .map((d) => d.date);
-      setPlan({ event, booked, targets, choice: 'leave', target: targets[0] ?? '' });
+        .filter((d) => d.open && d.eventId && d.eventId !== event.id && d.date >= todayKey())
+        .map((d) => ({
+          key: `${d.eventId}|${d.date}`,
+          eventId: d.eventId as string,
+          date: d.date,
+          label: `${d.eventTitle ?? 'Event'} · ${formatShortDateKey(d.date)}`,
+        }));
+      setPlan({ event, booked, targets, choice: 'leave', target: targets[0]?.key ?? '' });
     } catch (err) {
       show(err instanceof Error ? err.message : 'That action could not be completed', 'error');
     } finally {
@@ -130,15 +135,21 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
       const updated = await apiClient.unpublishEvent(event.id);
       setItems((current) => current.map((e) => (e.id === event.id ? updated : e)));
       let message = 'Event moved back to draft';
-      if (choice === 'move' && target) {
+      const picked = plan.targets.find((t) => t.key === target);
+      if (choice === 'move' && picked) {
         let moved = 0;
         let skipped = 0;
         for (const row of booked.filter((r) => r.waiting > 0)) {
-          const result = await apiClient.moveTokens(row.date, target);
+          const result = await apiClient.moveTokens({
+            eventId: event.id,
+            from: row.date,
+            to: picked.date,
+            toEventId: picked.eventId,
+          });
           moved += result.moved;
           skipped += result.skipped;
         }
-        message = `Event moved back to draft. Moved ${moved} ${moved === 1 ? 'token' : 'tokens'} to ${formatShortDateKey(target)}${skipped ? ` (${skipped} skipped: already have a token that day)` : ''}`;
+        message = `Event moved back to draft. Moved ${moved} ${moved === 1 ? 'token' : 'tokens'} to ${picked.label}${skipped ? ` (${skipped} skipped: already have a token there)` : ''}`;
       }
       show(message);
       setPlan(null);
@@ -181,7 +192,7 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {items.map((event) => {
+        {sortEventsByDate(items).map((event) => {
           // A draft cannot be published while another published event runs at the same time.
           const clash = event.status === 'DRAFT' ? findOverlap(event.startsAt, event.endsAt, items, event.id) : null;
           return (
@@ -265,15 +276,15 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
                   <input type="radio" name="unpublish-choice" checked={plan.choice === 'move'} onChange={() => setPlan({ ...plan, choice: 'move' })} className="accent-[#B8262B]" />
                   <span>Move the {planWaiting} waiting {planWaiting === 1 ? 'token' : 'tokens'} to</span>
                   <select
-                    aria-label="New date for the tokens"
+                    aria-label="Queue to move the tokens to"
                     value={plan.target}
                     disabled={plan.choice !== 'move'}
                     onChange={(e) => setPlan({ ...plan, target: e.target.value })}
-                    className="min-h-9 rounded-md border-[1.5px] border-line bg-input px-2 text-[13px] font-semibold"
+                    className="min-h-9 max-w-full rounded-md border-[1.5px] border-line bg-input px-2 text-[13px] font-semibold"
                   >
-                    {plan.targets.map((day) => (
-                      <option key={day} value={day}>
-                        {formatShortDateKey(day)}
+                    {plan.targets.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.label}
                       </option>
                     ))}
                   </select>
@@ -281,7 +292,7 @@ export function AdminEventsManager({ events, error }: { events: EventSummary[]; 
               </fieldset>
             )}
             {planWaiting > 0 && plan.targets.length === 0 && (
-              <p className="text-[13px] text-muted">No other date is open to move them to. Open another date on the dashboard first if you want to move them.</p>
+              <p className="text-[13px] text-muted">No other event queue is open to move them to. Open another event&apos;s queue on the dashboard first if you want to move them.</p>
             )}
           </div>
         )}

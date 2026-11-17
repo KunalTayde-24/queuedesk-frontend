@@ -3,7 +3,7 @@
 import { TempleLogo } from '@/components/brand/TempleLogo';
 import Link from 'next/link';
 import { useRealtimeTokens } from '@/hooks/useRealtimeTokens';
-import { countByStatus, sortByTokenNumberAsc } from '@/lib/queue-utils';
+import { countByStatus, latestCalled, sortByTokenNumberAsc } from '@/lib/queue-utils';
 import { Token, TokenStatus } from '@/types/token';
 import { EventCard } from '@/components/events/EventCard';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -70,17 +70,19 @@ export function KioskClient({
   upcomingEvents,
   openDates,
   defaultDate,
+  defaultEventId,
 }: {
   initialTokens: Token[];
   upcomingEvents: EventSummary[];
   openDates: OpenDates;
   defaultDate?: string;
+  defaultEventId?: string;
 }) {
   // Re-reads the open dates and events, so a date the admin closes disappears without a page reload.
   useAutoRefresh(10_000);
   const tokens = useRealtimeTokens(initialTokens);
   const { waiting } = countByStatus(tokens);
-  const called = sortByTokenNumberAsc(tokens.filter((t) => t.status === TokenStatus.CALLED)).at(-1);
+  const called = latestCalled(tokens);
 
   return (
     <div className="mx-auto max-w-[1080px] px-4 pb-14 pt-3 sm:px-5">
@@ -112,7 +114,13 @@ export function KioskClient({
             message the moment it&apos;s your turn.
           </p>
           <div id="get-token" className="scroll-mt-24">
-            <TokenForm tokens={tokens} waitingCount={waiting} openDates={openDates} defaultDate={defaultDate} />
+            <TokenForm
+              tokens={tokens}
+              waitingCount={waiting}
+              openDates={openDates}
+              defaultDate={defaultDate}
+              defaultEventId={defaultEventId}
+            />
           </div>
         </div>
       </section>

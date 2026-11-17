@@ -231,6 +231,10 @@
     animation: none !important;
     break-inside: avoid;
   }
+  /* With several tickets on the page, only the one being printed is shown. */
+  body:has(.print-ticket.printing-now) .print-ticket:not(.printing-now) {
+    display: none !important;
+  }
   /* Ink-friendly: black on white, no glow, no transparency. */
   .print-ticket,
   .print-ticket * {

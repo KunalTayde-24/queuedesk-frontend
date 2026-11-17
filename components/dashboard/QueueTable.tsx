@@ -10,7 +10,7 @@ import { Token } from '@/types/token';
 
 const GRID_COLS = 'grid-cols-[34px_1fr_90px] sm:grid-cols-[48px_1fr_122px_100px_300px]';
 
-export function QueueTable({ tokens }: { tokens: Token[] }) {
+export function QueueTable({ tokens, showEvent = false }: { tokens: Token[]; showEvent?: boolean }) {
   const { show } = useToast();
   const [pendingDelete, setPendingDelete] = useState<Token | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -58,7 +58,7 @@ export function QueueTable({ tokens }: { tokens: Token[] }) {
         </div>
       ) : (
         tokens.map((t) => (
-          <QueueTableRow key={t.id} token={t} onDeleteRequest={setPendingDelete} />
+          <QueueTableRow key={t.id} token={t} showEvent={showEvent} onDeleteRequest={setPendingDelete} />
         ))
       )}
       <DeleteConfirmModal

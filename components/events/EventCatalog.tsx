@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { eventImageSrc } from '@/lib/events';
+import { eventImageSrc, sortEventsByDate } from '@/lib/events';
 import { EventSummary } from '@/types/event';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { EventCard } from './EventCard';
@@ -17,11 +17,15 @@ const hasEnded = (event: EventSummary) => new Date(event.endsAt).getTime() < Dat
 
 export function EventCatalog({ events, error }: { events: EventSummary[]; error: boolean }) {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('all');
+  // By event date, not by the order events were published: upcoming and ongoing first (soonest
+  // first), then past events (most recent first).
   const visible = useMemo(
     () =>
-      filter === 'all'
-        ? events
-        : events.filter((event) => (filter === 'past' ? hasEnded(event) : !hasEnded(event))),
+      sortEventsByDate(
+        filter === 'all'
+          ? events
+          : events.filter((event) => (filter === 'past' ? hasEnded(event) : !hasEnded(event))),
+      ),
     [events, filter],
   );
   const featured = visible.find((event) => !hasEnded(event)) ?? visible[0];

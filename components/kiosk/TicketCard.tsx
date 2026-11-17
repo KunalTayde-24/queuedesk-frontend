@@ -1,5 +1,9 @@
+'use client';
+
+import { useRef } from 'react';
 import clsx from 'clsx';
 import { formatDateKey, formatShortDateKey } from '@/lib/dates';
+import { eventRangeLabel } from '@/lib/events';
 import { Token, TokenStatus } from '@/types/token';
 
 const AVG_MIN = 5;
@@ -14,6 +18,8 @@ interface TicketCardProps {
   /** True when that date is still ahead: no live position yet, just a booking. */
   upcoming?: boolean;
   onNew?: () => void;
+  /** Label of the button that calls `onNew` (default "New token"). */
+  newLabel?: string;
 }
 
 function statusLine(status: TokenStatus, ahead: number) {
@@ -23,7 +29,26 @@ function statusLine(status: TokenStatus, ahead: number) {
   return `You're in line · ${ahead} ahead of you`;
 }
 
-export function TicketCard({ token, ahead, gone = false, date, upcoming = false, onNew }: TicketCardProps) {
+export function TicketCard({ token, ahead, gone = false, date, upcoming = false, onNew, newLabel = 'New token' }: TicketCardProps) {
+  const ticketRef = useRef<HTMLDivElement>(null);
+
+  // Several tickets can be on the page, and the print layout puts a ticket at the top of the sheet,
+  // so mark only this one for printing; the others are hidden by the print styles.
+  function printThis() {
+    const el = ticketRef.current;
+    if (!el) {
+      window.print();
+      return;
+    }
+    el.classList.add('printing-now');
+    const done = () => {
+      el.classList.remove('printing-now');
+      window.removeEventListener('afterprint', done);
+    };
+    window.addEventListener('afterprint', done);
+    window.print();
+  }
+
   if (gone) {
     return (
       <div className="w-full max-w-[420px] rounded-[18px] border border-line bg-card p-5 text-ink shadow-card">
@@ -47,6 +72,7 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
 
   return (
     <div
+      ref={ticketRef}
       role="status"
       className="print-ticket relative w-full max-w-[420px] animate-popIn rounded-[20px] bg-[radial-gradient(circle_at_85%_10%,rgba(242,198,109,0.35),transparent_40%),linear-gradient(160deg,#C9302C,#9C1D22)] p-5 pb-4 text-[#FFF6E3] shadow-[inset_0_0_0_2px_rgba(242,198,109,0.7),inset_0_0_0_7px_#9C1D22,inset_0_0_0_8px_rgba(242,198,109,0.45),0_20px_40px_-18px_rgba(156,29,34,0.9)] sm:p-6"
     >
@@ -64,6 +90,17 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
         {token.tokenNumber}
       </p>
       <p className="truncate text-center text-[14px] font-bold opacity-90">{token.name}</p>
+      {token.eventTitle && (
+        <p className="mt-0.5 break-words text-center text-[13px] font-extrabold leading-5 text-[#F7D27E]">{token.eventTitle}</p>
+      )}
+      {token.eventStartsAt && token.eventEndsAt && (
+        <p className="break-words text-center text-[12px] font-semibold leading-5 opacity-90">
+          {eventRangeLabel(token.eventStartsAt, token.eventEndsAt)} (SGT)
+        </p>
+      )}
+      {token.eventVenue && token.eventVenue.trim().length > 1 && (
+        <p className="break-words text-center text-[12px] font-semibold leading-5 opacity-90">{token.eventVenue}</p>
+      )}
       {date && (
         <p className="mt-0.5 text-center text-[12px] font-semibold opacity-80">For {formatDateKey(date)}</p>
       )}
@@ -99,7 +136,7 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
       <div className="mt-4 flex gap-2 print:hidden">
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={printThis}
           className="inline-flex min-h-10 flex-1 items-center justify-center rounded-md border border-[#F2C66D]/50 bg-white/10 text-[13px] font-bold text-[#FFF6E3] transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C66D]"
         >
           Print
@@ -110,7 +147,7 @@ export function TicketCard({ token, ahead, gone = false, date, upcoming = false,
             onClick={onNew}
             className="inline-flex min-h-10 flex-1 items-center justify-center rounded-md bg-[linear-gradient(180deg,#F2C66D,#D9A441)] text-[13px] font-bold text-[#3B2506] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C66D]"
           >
-            New token
+            {newLabel}
           </button>
         )}
       </div>

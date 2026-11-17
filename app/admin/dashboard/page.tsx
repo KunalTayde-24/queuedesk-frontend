@@ -1,5 +1,6 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getSessionToken } from '@/lib/auth-cookie';
+import { loadAdminEvents } from '@/lib/events-data';
 import { forwardToBackend } from '@/lib/backend-proxy';
 import { AdminQueueDays } from '@/types/queue';
 import { Token } from '@/types/token';
@@ -19,9 +20,10 @@ async function fetchAdmin<T>(path: string, fallback: T): Promise<T> {
 }
 
 export default async function DashboardPage() {
-  const [initialTokens, initialDays] = await Promise.all([
+  const [initialTokens, initialDays, { events }] = await Promise.all([
     fetchAdmin<Token[]>('/admin/queue', []),
     fetchAdmin<AdminQueueDays>('/admin/queue/days', { today: '', days: [] }),
+    loadAdminEvents(),
   ]);
-  return <DashboardClient initialTokens={initialTokens} initialDays={initialDays} />;
+  return <DashboardClient initialTokens={initialTokens} initialDays={initialDays} events={events} />;
 }

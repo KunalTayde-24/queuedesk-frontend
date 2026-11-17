@@ -7,28 +7,27 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { TicketCard } from './TicketCard';
-import { useRealtimeQueue } from '@/hooks/useRealtimeTokens';
+import { MyTicket } from './MyTicket';
 import { apiClient } from '@/lib/api-client';
 import { formatDateKey, relativeDayLabel, todayKey } from '@/lib/dates';
+import { eventRangeLabel } from '@/lib/events';
 import { validateTokenForm } from '@/lib/validators';
 import { DEFAULT_COUNTRY, maskMobile } from '@/lib/phone';
-import { clearMyToken, saveMyToken, useMyToken } from '@/lib/my-token';
-import { OpenDates, SendOtpResponse } from '@/types/queue';
-import { Token, TokenStatus } from '@/types/token';
+import { saveMyToken, useMyTokens } from '@/lib/my-token';
+import { OpenDates, OpenQueue, SendOtpResponse } from '@/types/queue';
+import { Token } from '@/types/token';
 
 interface TokenFormProps {
-  /** Today's live queue, used to keep the issued ticket's status and "ahead of you" count current. */
+  /** Today's live queues (every event), used to keep issued tickets' status and "ahead of you" count current. */
   tokens: Token[];
   waitingCount: number;
-  /** Dates the admin has opened; visitors can only pick from these. */
+  /** The event queues the admin has opened; visitors can only pick from these. */
   openDates: OpenDates;
-  /** A date to start on (from an event page's "Take a queue token" link), used only if it is open. */
+  /** A date to start on (from an event page's "Take a queue token" link), used only if a queue is open then. */
   defaultDate?: string;
+  /** An event to start on (same link), used only if its queue is open. */
+  defaultEventId?: string;
 }
-
-// How long after creating a token we trust the polled list to already contain it.
-const SETTLE_MS = 15_000;
 
 const CARD =
   'relative flex w-full max-w-[420px] flex-col gap-3.5 rounded-[18px] border border-line border-t-4 border-t-violet bg-card p-5 text-ink shadow-card';
@@ -37,44 +36,26 @@ function errorMessage(err: unknown) {
   return err instanceof Error ? err.message : 'Something went wrong';
 }
 
-export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: TokenFormProps) {
-  const mine = useMyToken();
-  const today = openDates.today || todayKey();
-  // If staff move the token to another date, its date and number change on the server.
-  // Keep the saved ticket in step, so it keeps following the right queue.
-  const mineId = mine?.id;
-  const mineDate = mine?.date;
-  const mineNumber = mine?.tokenNumber;
-  const mineMobile = mine?.mobile;
-  useEffect(() => {
-    if (!mineId) return;
-    let cancelled = false;
-    const sync = async () => {
-      try {
-        const res = await fetch(`/api/tokens/${mineId}`, { cache: 'no-store' });
-        if (!res.ok || cancelled) return;
-        const server = (await res.json()) as Token;
-        if (server.date.slice(0, 10) !== mineDate || server.tokenNumber !== mineNumber) {
-          saveMyToken({ ...server, mobile: mineMobile ?? '' });
-        }
-      } catch {
-        // Ignore transient network errors; the next check will catch up.
-      }
-    };
-    void sync();
-    const timer = setInterval(sync, 5000);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [mineId, mineDate, mineNumber, mineMobile]);
+const queueKeyOf = (eventId: string, date: string) => `${eventId}|${date}`;
 
-  // A token booked for a later date is followed on that date's own queue, so "called" shows up too.
-  const { tokens: laterQueue, loaded: laterLoaded } = useRealtimeQueue(
-    [],
-    mine && mine.date !== today ? `/api/tokens/by-date?date=${encodeURIComponent(mine.date)}` : null,
+export function TokenForm({ tokens, waitingCount, openDates, defaultDate, defaultEventId }: TokenFormProps) {
+  const tickets = useMyTokens();
+  const today = openDates.today || todayKey();
+  const queues = useMemo(() => openDates.queues ?? [], [openDates.queues]);
+  const dateSet = useMemo(() => new Set(queues.map((q) => q.date)), [queues]);
+  // One live token per phone number per event and date. Tickets saved in this browser are
+  // remembered by event, date and number, so a different number (someone else) can take its own.
+  const heldKeys = useMemo(
+    () =>
+      new Set(
+        tickets
+          .filter((t) => t.eventId)
+          .map((t) => `${queueKeyOf(t.eventId as string, t.date)}|${t.mobile}`),
+      ),
+    [tickets],
   );
-  const dateSet = useMemo(() => new Set(openDates.dates), [openDates.dates]);
+  // With saved tickets the page shows them; the form comes back on request.
+  const [showForm, setShowForm] = useState(false);
 
   const [step, setStep] = useState<'details' | 'otp'>('details');
   const [name, setName] = useState('');
@@ -82,29 +63,43 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
   const [national, setNational] = useState('');
   // Full international number, e.g. "+6591234567"; this is what is verified and stored.
   const mobile = `${country}${national}`;
+  // Does the number typed in the form already hold a token for this event queue?
+  const isHeld = (q: OpenQueue) => national.length > 0 && heldKeys.has(`${queueKeyOf(q.eventId, q.date)}|${mobile}`);
   const [agreed, setAgreed] = useState(false);
   const [draftLoaded, setDraftLoaded] = useState(false);
-  const [date, setDate] = useState(() =>
-    defaultDate && openDates.dates.includes(defaultDate)
-      ? defaultDate
-      : openDates.dates.includes(today)
-        ? today
-        : (openDates.dates[0] ?? ''),
-  );
+  const [date, setDate] = useState(() => {
+    const preferred =
+      defaultDate && dateSet.has(defaultDate)
+        ? defaultDate
+        : defaultEventId
+          ? queues.find((q) => q.eventId === defaultEventId)?.date
+          : undefined;
+    return preferred ?? (dateSet.has(today) ? today : (queues[0]?.date ?? ''));
+  });
+  const [eventId, setEventId] = useState(defaultEventId ?? '');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; mobile?: string; date?: string; terms?: string }>({});
+
+  // The queues open on the chosen date, and the one the visitor is taking a token for.
+  const queuesOnDate = useMemo(() => queues.filter((q) => q.date === date), [queues, date]);
+  const chosen = useMemo(
+    () =>
+      queuesOnDate.find((q) => q.eventId === eventId && !isHeld(q)) ?? queuesOnDate.find((q) => !isHeld(q)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queuesOnDate, eventId, heldKeys, mobile, national],
+  );
+  const queueKey = chosen ? queueKeyOf(chosen.eventId, chosen.date) : '';
 
   const [code, setCode] = useState('');
   const [otpInfo, setOtpInfo] = useState<SendOtpResponse | null>(null);
   const [resendLeft, setResendLeft] = useState(0);
-  // A verified phone number stays good for a few minutes, so a failed token request can be retried.
-  const [verified, setVerified] = useState<{ mobile: string; token: string } | null>(null);
+  // A verified phone number stays good for a few minutes, but only for the queue it was verified for.
+  const [verified, setVerified] = useState<{ mobile: string; token: string; queue: string } | null>(null);
   const verifiedAt = useRef(Date.now());
   const [otpSentAt, setOtpSentAt] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const seenLive = useRef(false);
 
   // The terms open as a full page in this same tab, so keep what was typed and bring it back
   // when the visitor returns. (Kept only for this browser tab; the Terms box is never pre-ticked.)
@@ -115,15 +110,17 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
         country?: string;
         national?: string;
         date?: string;
+        eventId?: string;
         step?: string;
         otp?: { info: SendOtpResponse; sentAt: number } | null;
-        verified?: { mobile: string; token: string; at: number } | null;
+        verified?: { mobile: string; token: string; queue?: string; at: number } | null;
       } | null;
       if (saved) {
         if (typeof saved.name === 'string') setName(saved.name);
         if (typeof saved.country === 'string') setCountry(saved.country);
         if (typeof saved.national === 'string') setNational(saved.national);
         if (typeof saved.date === 'string' && dateSet.has(saved.date)) setDate(saved.date);
+        if (typeof saved.eventId === 'string') setEventId(saved.eventId);
 
         // Came back to the code step: put the visitor back where they were, as long as the
         // code they were sent is still valid, so they can type it without asking for a new one.
@@ -140,10 +137,15 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
           setResendLeft(Math.max(0, Math.ceil((otp.sentAt + otp.info.resendAfterSeconds * 1000 - now) / 1000)));
           setAgreed(true); // they ticked the Terms to get this far, in this same tab
           setStep('otp');
+          setShowForm(true);
         }
         // A number verified in the last few minutes can still be used to get the token.
         if (saved.verified && now - saved.verified.at < 9 * 60_000) {
-          setVerified({ mobile: saved.verified.mobile, token: saved.verified.token });
+          setVerified({
+            mobile: saved.verified.mobile,
+            token: saved.verified.token,
+            queue: saved.verified.queue ?? '',
+          });
         }
       }
     } catch {
@@ -166,6 +168,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
           country,
           national,
           date,
+          eventId: chosen?.eventId ?? eventId,
           step,
           otp: step === 'otp' && otpInfo && otpSentAt ? { info: otpInfo, sentAt: otpSentAt } : null,
           verified: verified ? { ...verified, at: verifiedAt.current } : null,
@@ -174,7 +177,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     } catch {
       // ignore
     }
-  }, [draftLoaded, name, country, national, date, step, otpInfo, otpSentAt, verified]);
+  }, [draftLoaded, name, country, national, date, eventId, chosen, step, otpInfo, otpSentAt, verified]);
 
   useEffect(() => {
     if (resendLeft <= 0) return;
@@ -195,9 +198,21 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     setErrors({});
   }
 
+  /** A failed attempt (other than a dropped connection) needs a fresh code next time. */
+  function afterFailure(err: unknown) {
+    if (!(err instanceof TypeError)) setVerified(null);
+    setApiError(errorMessage(err));
+  }
+
   async function createWithVerification(verificationToken: string) {
-    const token = await apiClient.createToken({ name: name.trim(), mobile, date, verificationToken });
-    seenLive.current = false;
+    if (!chosen) throw new Error('Pick an event queue first');
+    const token = await apiClient.createToken({
+      name: name.trim(),
+      mobile,
+      eventId: chosen.eventId,
+      date,
+      verificationToken,
+    });
     saveMyToken(token); // remembered in this browser, so a refresh keeps the ticket
     try {
       sessionStorage.removeItem('qd-token-draft');
@@ -205,6 +220,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
       // ignore
     }
     resetForm();
+    setShowForm(false);
   }
 
   async function sendCode() {
@@ -228,18 +244,19 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     e.preventDefault();
     const found: { name?: string; mobile?: string; date?: string; terms?: string } = { ...validateTokenForm(name, mobile) };
     if (!date) found.date = 'Pick a date for your token';
+    else if (!chosen) found.date = 'Pick an event you do not have a token for yet';
     if (!agreed) found.terms = 'Please agree to the Terms & Conditions to continue';
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    // Already verified this number moments ago (e.g. the date was just full or closed): skip the code.
-    if (verified && verified.mobile === mobile) {
+    // Already verified this number for this queue moments ago: skip the code.
+    if (verified && verified.mobile === mobile && verified.queue === queueKey) {
       setSubmitting(true);
       setApiError(null);
       try {
         await createWithVerification(verified.token);
       } catch (err) {
-        setApiError(errorMessage(err));
+        afterFailure(err);
       } finally {
         setSubmitting(false);
       }
@@ -257,89 +274,43 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
     setSubmitting(true);
     setApiError(null);
     try {
-      let proof = verified?.mobile === mobile ? verified.token : null;
+      let proof = verified?.mobile === mobile && verified.queue === queueKey ? verified.token : null;
       if (!proof) {
         const result = await apiClient.verifyOtp(mobile, code);
         proof = result.verificationToken;
         verifiedAt.current = Date.now();
-        setVerified({ mobile, token: proof });
+        setVerified({ mobile, token: proof, queue: queueKey });
       }
       await createWithVerification(proof);
     } catch (err) {
-      setApiError(errorMessage(err));
+      afterFailure(err);
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (mine) {
-    const isToday = mine.date === today;
-    if (!isToday) {
-      const live = laterQueue.find((t) => t.id === mine.id);
-      const progressed = live && live.status !== TokenStatus.WAITING;
-      // Removed by staff: that date's queue loaded and our token is not in it. Right after
-      // booking, allow a short settling time first.
-      const goneLater = laterLoaded && !live && Date.now() - Date.parse(mine.createdAt) > SETTLE_MS;
-      const stored: Token = {
-        id: mine.id,
-        date: mine.date,
-        tokenNumber: mine.tokenNumber,
-        name: live?.name ?? mine.name,
-        mobile: mine.mobile,
-        status: live?.status ?? TokenStatus.WAITING,
-        createdAt: mine.createdAt,
-      };
-      const aheadLater = live
-        ? laterQueue.filter((t) => t.status === TokenStatus.WAITING && t.tokenNumber < mine.tokenNumber).length
-        : 0;
-      return (
-        <div id="my-ticket" className="w-full max-w-[420px] scroll-mt-24">
-          {/* Booked for a later date: shows the booking until staff start calling it, then the live status. */}
-          <TicketCard
-            token={stored}
-            ahead={aheadLater}
-            gone={goneLater}
-            date={mine.date}
-            upcoming={!progressed}
-            onNew={clearMyToken}
-          />
-        </div>
-      );
-    }
-
-    // Prefer the polled copy so the ticket reflects "called" / "done" live.
-    const live = tokens.find((t) => t.id === mine.id);
-    if (live) seenLive.current = true;
-    const current: Token = {
-      id: mine.id,
-      date: mine.date,
-      tokenNumber: mine.tokenNumber,
-      name: live?.name ?? mine.name,
-      // The public queue never carries phone numbers, so always use our own copy.
-      mobile: mine.mobile,
-      status: live?.status ?? TokenStatus.WAITING,
-      createdAt: mine.createdAt,
-    };
-    const ahead = tokens.filter(
-      (t) => t.status === TokenStatus.WAITING && t.tokenNumber < mine.tokenNumber,
-    ).length;
-    // Removed by staff: the queue has entries but ours is not among them. Right after
-    // creation the next poll may not include it yet, so allow a short settling time.
-    const settled = seenLive.current || Date.now() - Date.parse(mine.createdAt) > SETTLE_MS;
-    const gone = !live && tokens.length > 0 && settled;
-
+  if (tickets.length > 0 && !showForm) {
     return (
-      <div id="my-ticket" className="w-full max-w-[420px] scroll-mt-24">
-        <TicketCard
-          token={current}
-          ahead={ahead}
-          gone={gone}
-          date={mine.date}
-          onNew={() => {
-            seenLive.current = false;
-            clearMyToken();
-          }}
-        />
+      <div id="my-ticket" className="flex w-full max-w-[420px] scroll-mt-24 flex-col gap-4">
+        {/* One ticket per event: each follows its own event's queue. */}
+        {tickets.map((ticket) => (
+          <MyTicket
+            key={ticket.id}
+            mine={ticket}
+            today={today}
+            todayTokens={tokens}
+            removable={tickets.length > 1}
+          />
+        ))}
+        {queues.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="inline-flex min-h-11 items-center justify-center rounded-md border-[1.5px] border-[#F2C66D]/70 bg-black/20 px-4 text-[13px] font-bold text-[#FFE3A1] transition-colors hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C66D]"
+          >
+            Get a token for someone else or another event
+          </button>
+        )}
       </div>
     );
   }
@@ -354,6 +325,11 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
             We sent a verification code to <b className="text-ink">{maskedMobile}</b>. It stays valid for{' '}
             {Math.max(1, Math.round((otpInfo?.expiresInSeconds ?? 300) / 60))} minutes.
           </p>
+          {chosen && (
+            <p className="mt-1 text-[12.5px] font-semibold leading-5 text-amber-dark">
+              Token for: {chosen.title} · {formatDateKey(chosen.date)}
+            </p>
+          )}
         </div>
 
         {otpInfo?.devCode && (
@@ -403,18 +379,16 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
             }}
             className="rounded font-bold text-muted underline-offset-2 hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
           >
-            Change number or date
+            Change number, event or date
           </button>
         </div>
       </form>
     );
   }
 
-  const noDates = openDates.dates.length === 0;
-  // `events` is missing if the backend is an older version, so never assume it is there.
-  const dateEvents = (openDates.events ?? []).filter((e) => e.date === date);
-  // The button stays disabled until the name, mobile number and Terms box are all done.
-  const canSubmit = !noDates && name.trim().length > 0 && national.length > 0 && agreed;
+  const noDates = queues.length === 0;
+  // The button stays disabled until the name, mobile number, an event and the Terms box are all done.
+  const canSubmit = !noDates && Boolean(chosen) && name.trim().length > 0 && national.length > 0 && agreed;
   const relative = date ? relativeDayLabel(date, today) : '';
 
   return (
@@ -425,6 +399,15 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
           {waitingCount} in line today
         </span>
       </div>
+      {tickets.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowForm(false)}
+          className="-mt-1.5 self-start rounded text-[12.5px] font-bold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+        >
+          ← Back to my tickets
+        </button>
+      )}
 
       <Input
         id="name"
@@ -486,12 +469,13 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
               value={date || null}
               onChange={(key) => {
                 setDate(key);
+                setEventId('');
                 setCalendarOpen(false);
                 setErrors((prev) => ({ ...prev, date: undefined }));
               }}
               isEnabled={(key) => dateSet.has(key)}
               isMarked={(key) => dateSet.has(key)}
-              legend="Gold dots are the dates the queue is open. Other dates are closed."
+              legend="Gold dots are the dates a queue is open. Other dates are closed."
             />
           </div>
         )}
@@ -500,17 +484,52 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
             {errors.date}
           </span>
         )}
-        {date && dateEvents.length > 0 && (
-          <p className="text-[12.5px] font-semibold leading-5 text-amber-dark">
-            Event: {dateEvents.map((e) => e.title).join(', ')}
-          </p>
-        )}
         {noDates && (
           <p role="note" className="rounded-md bg-violet-soft px-3 py-2 text-[12.5px] leading-5 text-muted">
-            The queue is not open on any upcoming date right now. Please check back soon.
+            No queue is open on any upcoming date right now. Please check back soon.
           </p>
         )}
       </div>
+
+      {queuesOnDate.length > 0 && (
+        <fieldset className="flex min-w-0 flex-col gap-1.5">
+          <legend className="mb-1.5 text-[12px] font-bold leading-4 text-ink/80">Event</legend>
+          {queuesOnDate.map((q) => {
+            const held = isHeld(q);
+            const selected = chosen?.eventId === q.eventId;
+            return (
+              <label
+                key={q.eventId}
+                className={clsx(
+                  'flex min-w-0 items-start gap-2.5 rounded-md border-[1.5px] px-3 py-2 text-[13px] leading-5',
+                  selected ? 'border-violet bg-violet-soft' : 'border-line bg-input',
+                  held ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="event-queue"
+                  value={q.eventId}
+                  checked={selected}
+                  disabled={held}
+                  onChange={() => {
+                    setEventId(q.eventId);
+                    setErrors((prev) => ({ ...prev, date: undefined }));
+                  }}
+                  className="mt-1 h-4 w-4 flex-shrink-0 accent-[#B8262B]"
+                />
+                <span className="min-w-0">
+                  <b className="block break-words">{q.title}</b>
+                  <span className="block text-[12px] text-muted">
+                    {eventRangeLabel(q.startsAt, q.endsAt)}
+                    {held ? ' · this number already has a token for this event' : ''}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </fieldset>
+      )}
 
       {apiError && (
         <p role="alert" className="text-[12.5px] font-semibold leading-5 text-coral-dark">
@@ -552,7 +571,7 @@ export function TokenForm({ tokens, waitingCount, openDates, defaultDate }: Toke
       </Button>
       {!canSubmit && !noDates && (
         <p className="-mt-1.5 text-[11.5px] leading-4 text-muted">
-          Fill in your name and mobile number and tick the box to continue.
+          Fill in your name and mobile number, pick an event and tick the box to continue.
         </p>
       )}
       <p className="flex items-start gap-2 text-[12px] leading-5 text-muted">

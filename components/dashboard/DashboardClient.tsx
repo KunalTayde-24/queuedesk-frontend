@@ -16,6 +16,8 @@ import { RecentlyServedStrip } from './RecentlyServedStrip';
 import { LogoutButton } from './LogoutButton';
 import { SoundToggle } from './SoundToggle';
 import { AdminQueueDays } from '@/types/queue';
+import { EventSummary } from '@/types/event';
+import { queuesForDate } from '@/lib/queues';
 import { Token, TokenStatus } from '@/types/token';
 
 const RECENT_SERVED_COUNT = 6;
@@ -26,9 +28,12 @@ const NEW_TOKEN_WINDOW_MS = 30_000;
 export function DashboardClient({
   initialTokens,
   initialDays,
+  events,
 }: {
   initialTokens: Token[];
   initialDays: AdminQueueDays;
+  /** Every event (the published ones with a queue appear as queues even while closed and empty). */
+  events: EventSummary[];
 }) {
   const { show } = useToast();
   const today = initialDays.today || todayKey();
@@ -36,9 +41,25 @@ export function DashboardClient({
   const [days, setDays] = useState(initialDays.days);
   const [dayBusy, setDayBusy] = useState(false);
 
-  const polled = useRealtimeTokens(initialTokens, `/api/admin/queue?date=${date}`);
-  // Right after switching dates the list still holds the previous date for a moment; hide it.
-  const tokens = useMemo(() => polled.filter((t) => t.date.slice(0, 10) === date), [polled, date]);
+  // Every event has its own queue: pick which one to work on ("all" lists them together).
+  const [pick, setPick] = useState('');
+  const queues = useMemo(() => queuesForDate(date, days, events), [date, days, events]);
+  const selected = pick === 'all' ? null : (queues.find((q) => q.key === pick) ?? queues[0] ?? null);
+  const selectedKey = pick === 'all' ? 'all' : (selected?.key ?? '');
+
+  const polled = useRealtimeTokens(
+    initialTokens,
+    `/api/admin/queue?date=${date}${selected?.eventId ? `&eventId=${selected.eventId}` : ''}`,
+  );
+  // Right after switching dates or queues the list still holds the previous one for a moment; hide it.
+  const tokens = useMemo(
+    () =>
+      polled.filter(
+        (t) =>
+          t.date.slice(0, 10) === date && (!selected || (t.eventId ?? null) === selected.eventId),
+      ),
+    [polled, date, selected],
+  );
 
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
@@ -86,17 +107,18 @@ export function DashboardClient({
   }, [tokens]);
 
   async function toggleOpen() {
-    const isOpen = days.some((d) => d.date === date && d.open);
+    if (!selected?.eventId) return;
+    const { eventId, open: isOpen, title } = selected;
     setDayBusy(true);
     try {
-      if (isOpen) await apiClient.closeQueueDay(date);
-      else await apiClient.openQueueDay(date);
+      if (isOpen) await apiClient.closeQueueDay(eventId, date);
+      else await apiClient.openQueueDay(eventId, date);
       const fresh = await apiClient.listQueueDays();
       setDays(fresh.days);
       show(
         isOpen
-          ? `Closed ${formatDateKey(date)}. Visitors can no longer pick it.`
-          : `Opened ${formatDateKey(date)}. Visitors can now pick it.`,
+          ? `Closed ${title} on ${formatDateKey(date)}. Visitors can no longer pick it.`
+          : `Opened ${title} on ${formatDateKey(date)}. Visitors can now pick it.`,
       );
     } catch (err) {
       show(err instanceof Error ? err.message : 'Could not change that date', 'error');
@@ -133,6 +155,7 @@ export function DashboardClient({
           </span>
           <h1 className="text-[24px] font-bold text-ink">
             {date === today ? "Today's queue" : `Queue for ${formatDateKey(date)}`}
+            {selected ? ` · ${selected.title}` : ''}
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -146,9 +169,16 @@ export function DashboardClient({
         date={date}
         today={today}
         days={days}
+        queues={queues}
+        selectedKey={selectedKey}
+        onPickQueue={(key) => {
+          setPick(key);
+          setWalkinOpen(false);
+        }}
         busy={dayBusy}
         onSelect={(next) => {
           setDate(next);
+          setPick('');
           setWalkinOpen(false);
         }}
         onToggleOpen={() => void toggleOpen()}
@@ -168,11 +198,17 @@ export function DashboardClient({
 
       {walkinOpen && (
         <div className="mb-3.5">
-          <AddWalkInForm date={date} onDone={() => setWalkinOpen(false)} />
+          <AddWalkInForm
+            date={date}
+            eventId={selected?.eventId ?? null}
+            eventTitle={selected?.title ?? null}
+            queueOpen={Boolean(selected?.open)}
+            onDone={() => setWalkinOpen(false)}
+          />
         </div>
       )}
 
-      <QueueTable tokens={filtered} />
+      <QueueTable tokens={filtered} showEvent={!selected} />
     </div>
   );
 }
